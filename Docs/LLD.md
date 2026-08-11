@@ -1,0 +1,151 @@
+# Idea
+
+3 main Users
+    - Driver
+    - Administration
+    - District Manager
+
+Other Tables
+    - NormalPerson
+    - Location
+    - Drop-Off Location
+    - Filling Station
+    - Request
+    - Vehicle
+
+## Actual Tables
+
+Driver
+    - DriverID (uuid7)
+    - Name
+    - ContactNumber
+    - PhoneType (Basic, Smart)
+    - TotalRating
+    - TotalDeliveries
+
+Administration
+    - AdminID (uuid7)
+    - PasswordHash
+    - Mail
+    - Name
+    - ContactNumber
+    - Role (Dispatcher, Manager, etc.)
+
+DistrictManager
+    - ManagerID (uuid7)
+    - Name
+    - ContactNumber
+    - NormalPersonID (uuid7) - FK
+    - LocationID (uuid7) - FK
+
+NormalPerson
+    - PersonID (uuid7)
+    - Name
+    - ContactNumber
+    - Address
+    - LocationID (uuid7) - FK
+
+Location
+    - LocationID (uuid7)
+    - Address
+    - Latitude
+    - Longitude
+    - Landmark
+
+DropOffLocation
+    - LocationID (uuid7) - FK
+    - HasPrivateBorewell
+    - TrafficRisk (High, Medium, Low)
+    - NormalTravelTime
+
+FillingStation
+    - StationID (uuid7)
+    - Name
+    - LocationID (uuid7) - FK
+    - CurrentTruckCount
+
+Request
+    - RequestID (uuid7)
+    - RequestType (Letter, Call, Online, Offline)
+    - RequesterID (uuid7) - FK
+    - DropOffLocationID (uuid7) - FK
+    - FillingStationID (uuid7) - FK
+    - DriverID (uuid7) - FK
+    - VehicleID (uuid7) - FK
+    - Status
+    - PriorityScore
+    - CreatedAt
+    - DispatchedAt
+    - CompletedAt
+
+Vehicle
+    - VehicleID (uuid7)
+    - Type (Contracted, Municipal)
+    - Capacity
+    - CurrentLocationID (uuid7) - FK
+    - Status (Available, On Delivery, Maintenance)
+    - AssignedDriverID (uuid7) - FK
+
+# Authentication
+
+POST   /auth/login # login user and return JWT token
+
+# Requests
+
+POST   /requests                                      # Create a new request
+GET    /requests                                      # List all requests
+GET    /requests/{id}                                 # Get details of a specific request
+POST   /requests/{id}/calculate-priority              # Calculate priority score
+GET    /requests/{id}/status                          # Get request status
+POST   /requests/{id}/assign                          # Assign driver, vehicle and filling station
+POST   /requests/{id}/dispatch                        # Dispatch request
+POST   /requests/{id}/generate-otp                    # Generate delivery OTP
+POST   /requests/{id}/complete                        # Complete request using OTP
+POST   /requests/{id}/cancel                          # Cancel request
+
+# Drivers
+
+POST   /drivers                                        # Create a new driver
+GET    /drivers                                        # List all drivers
+GET    /drivers/{id}                                   # Get details of a specific driver
+GET    /drivers/recommended?dropOffLocationId={id}     # Get recommended drivers for a location
+GET    /drivers/{id}/requests                          # Get requests assigned to a driver
+
+# Vehicles
+
+POST   /vehicles                                       # Create a new vehicle
+GET    /vehicles                                       # List all vehicles
+GET    /vehicles/available                             # List available vehicles
+GET    /vehicles/{id}                                  # Get details of a specific vehicle
+PATCH  /vehicles/{id}/status                           # Update vehicle status
+
+# Filling Stations
+
+GET    /filling-stations                                    # List all filling stations
+GET    /filling-stations/{id}                               # Get details of a specific filling station
+GET    /filling-stations/recommended?dropOffLocationId={id} # Get recommended filling stations
+
+# Drop-Off Locations
+
+GET    /drop-off-locations                             # List all drop-off locations
+GET    /drop-off-locations/{id}                        # Get details of a specific drop-off location
+GET    /drop-off-locations/{id}/drivers                # Get drivers who have delivered to this location
+
+# Normal Persons
+
+POST   /persons                                        # Create a new person
+GET    /persons/{id}                                   # Get details of a specific person
+
+# District Managers
+
+POST   /district-managers                              # Create a new district manager
+GET    /district-managers                              # List all district managers
+GET    /district-managers/{id}                         # Get details of a specific district manager
+GET    /district-managers/{id}/requests                # Get requests for a district manager's location
+
+# Administration
+
+POST   /admins                                         # Create a new admin
+GET    /admins                                         # List all admins
+GET    /admins/{id}                                    # Get details of a specific admin
+PATCH  /admins/{id}                                    # Update admin details
