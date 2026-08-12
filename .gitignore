@@ -1,1 +1,12 @@
+# Environment Variables
 .env
+
+# Binary Executables & Temporary Build Files
+main
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.tsbuildinfo

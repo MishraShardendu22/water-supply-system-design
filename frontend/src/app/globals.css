@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --color-dark-brown: #2E2910;
-  --color-brand-green: #2C5745;
-  --color-sand-yellow: #EBE3A7;
-  --color-orange-accent: #EB7D00;
+  --color-dark-brown: #2e2910;
+  --color-brand-green: #2c5745;
+  --color-sand-yellow: #ebe3a7;
+  --color-orange-accent: #eb7d00;
 
   --color-dark-brown-light: #443e1b;
   --color-brand-green-light: #3d725c;
@@ -14,35 +14,67 @@
   --color-orange-accent-hover: #c96b00;
 
   --background: #f9f8f0;
-  --foreground: #2E2910;
+  --foreground: #2e2910;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   min-height: 100vh;
 }
 
 /* Custom Palette Utility Classes */
-.bg-dark-brown { background-color: var(--color-dark-brown); }
-.text-dark-brown { color: var(--color-dark-brown); }
-.border-dark-brown { border-color: var(--color-dark-brown); }
+.bg-dark-brown {
+  background-color: var(--color-dark-brown);
+}
+.text-dark-brown {
+  color: var(--color-dark-brown);
+}
+.border-dark-brown {
+  border-color: var(--color-dark-brown);
+}
 
-.bg-brand-green { background-color: var(--color-brand-green); }
-.bg-brand-green-hover:hover { background-color: var(--color-brand-green-light); }
-.text-brand-green { color: var(--color-brand-green); }
-.border-brand-green { border-color: var(--color-brand-green); }
+.bg-brand-green {
+  background-color: var(--color-brand-green);
+}
+.bg-brand-green-hover:hover {
+  background-color: var(--color-brand-green-light);
+}
+.text-brand-green {
+  color: var(--color-brand-green);
+}
+.border-brand-green {
+  border-color: var(--color-brand-green);
+}
 
-.bg-sand-yellow { background-color: var(--color-sand-yellow); }
-.bg-sand-yellow-light { background-color: var(--color-sand-yellow-light); }
-.text-sand-yellow { color: var(--color-sand-yellow); }
-.border-sand-yellow { border-color: var(--color-sand-yellow-dark); }
+.bg-sand-yellow {
+  background-color: var(--color-sand-yellow);
+}
+.bg-sand-yellow-light {
+  background-color: var(--color-sand-yellow-light);
+}
+.text-sand-yellow {
+  color: var(--color-sand-yellow);
+}
+.border-sand-yellow {
+  border-color: var(--color-sand-yellow-dark);
+}
 
-.bg-orange-accent { background-color: var(--color-orange-accent); }
-.bg-orange-accent-hover:hover { background-color: var(--color-orange-accent-hover); }
-.text-orange-accent { color: var(--color-orange-accent); }
-.border-orange-accent { border-color: var(--color-orange-accent); }
+.bg-orange-accent {
+  background-color: var(--color-orange-accent);
+}
+.bg-orange-accent-hover:hover {
+  background-color: var(--color-orange-accent-hover);
+}
+.text-orange-accent {
+  color: var(--color-orange-accent);
+}
+.border-orange-accent {
+  border-color: var(--color-orange-accent);
+}
 
 /* Operational Dashboard Styles */
 .card-surface {
@@ -54,7 +86,7 @@ body {
 
 .table-header {
   background-color: #f2ebd4;
-  color: #2E2910;
+  color: #2e2910;
   font-weight: 600;
   font-size: 0.875rem;
   text-transform: uppercase;

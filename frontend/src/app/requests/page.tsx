@@ -1,36 +1,45 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { AppShell } from '../../components/layout/AppShell';
-import { Badge } from '../../components/ui/Badge';
-import { Modal } from '../../components/ui/Modal';
-import { DropOffLocation, NormalPerson, RequestItem, RequestStatus, RequestType } from '../../lib/types';
-import { locationsApi, personsApi, requestsApi } from '../../lib/api';
+import Link from "next/link";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { Badge } from "../../components/ui/Badge";
+import { Modal } from "../../components/ui/Modal";
+import { locationsApi, personsApi, requestsApi } from "../../lib/api";
+import {
+  type DropOffLocation,
+  NormalPerson,
+  type RequestItem,
+  RequestStatus,
+  type RequestType,
+} from "../../lib/types";
 
 export default function RequestsPage() {
   const [requests, setRequests] = useState<RequestItem[]>([]);
-  const [filteredStatus, setFilteredStatus] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filteredStatus, setFilteredStatus] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
   // Create Request Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [locations, setLocations] = useState<DropOffLocation[]>([]);
 
-  const [reqType, setReqType] = useState<RequestType>('Online');
-  const [selectedPersonId, setSelectedPersonId] = useState<string>('');
-  const [selectedLocId, setSelectedLocId] = useState<string>('');
+  const [reqType, setReqType] = useState<RequestType>("Online");
+  const [selectedPersonId, setSelectedPersonId] = useState<string>("");
+  const [selectedLocId, setSelectedLocId] = useState<string>("");
   const [creating, setCreating] = useState<boolean>(false);
 
   const fetchRequests = () => {
     setLoading(true);
-    requestsApi.getRequests(filteredStatus === 'ALL' ? undefined : filteredStatus).then((res) => {
-      if (res.success && res.data) {
-        setRequests(res.data);
-      }
-      setLoading(false);
-    });
+    requestsApi
+      .getRequests(filteredStatus === "ALL" ? undefined : filteredStatus)
+      .then((res) => {
+        if (res.success && res.data) {
+          setRequests(res.data);
+        }
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -54,8 +63,8 @@ export default function RequestsPage() {
     let personId = selectedPersonId;
     if (!personId) {
       const personRes = await personsApi.createPerson({
-        name: 'Citizen Requester',
-        contactNumber: '+919800011122',
+        name: "Citizen Requester",
+        contactNumber: "+919800011122",
       });
       if (personRes.success && personRes.data) {
         personId = personRes.data.id;
@@ -83,10 +92,14 @@ export default function RequestsPage() {
   const displayedRequests = requests.filter((r) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const reqName = r.requester?.name?.toLowerCase() || '';
-    const locAddr = r.dropOffLocation?.location?.address?.toLowerCase() || '';
+    const reqName = r.requester?.name?.toLowerCase() || "";
+    const locAddr = r.dropOffLocation?.location?.address?.toLowerCase() || "";
     const idStr = r.id.toLowerCase();
-    return reqName.includes(query) || locAddr.includes(query) || idStr.includes(query);
+    return (
+      reqName.includes(query) ||
+      locAddr.includes(query) ||
+      idStr.includes(query)
+    );
   });
 
   return (
@@ -95,9 +108,12 @@ export default function RequestsPage() {
         {/* Header Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-[#2E2910]">Water Supply Requests Queue</h2>
+            <h2 className="text-xl font-bold text-[#2E2910]">
+              Water Supply Requests Queue
+            </h2>
             <p className="text-xs text-[#857c4c]">
-              Manage and dispatch emergency & routine municipal water tanker delivery requests
+              Manage and dispatch emergency & routine municipal water tanker
+              delivery requests
             </p>
           </div>
           <button
@@ -111,14 +127,22 @@ export default function RequestsPage() {
         {/* Filters & Search Toolbar */}
         <div className="card-surface p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {['ALL', 'PENDING', 'VERIFIED', 'ASSIGNED', 'DISPATCHED', 'COMPLETED', 'CANCELLED'].map((st) => (
+            {[
+              "ALL",
+              "PENDING",
+              "VERIFIED",
+              "ASSIGNED",
+              "DISPATCHED",
+              "COMPLETED",
+              "CANCELLED",
+            ].map((st) => (
               <button
                 key={st}
                 onClick={() => setFilteredStatus(st)}
                 className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${
                   filteredStatus === st
-                    ? 'bg-[#2C5745] text-white shadow'
-                    : 'bg-[#f4f1db] text-[#58512b] hover:bg-[#e2dab0]'
+                    ? "bg-[#2C5745] text-white shadow"
+                    : "bg-[#f4f1db] text-[#58512b] hover:bg-[#e2dab0]"
                 }`}
               >
                 {st}
@@ -165,43 +189,65 @@ export default function RequestsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#f2ebd4]">
                   {displayedRequests.map((req) => (
-                    <tr key={req.id} className="hover:bg-[#f7f4d9]/70 transition-colors">
-                      <td className="p-3 font-mono font-bold text-[#2E2910]">#{req.id.slice(-6)}</td>
-                      <td className="p-3 font-semibold text-[#58512b]">{req.requestType}</td>
+                    <tr
+                      key={req.id}
+                      className="hover:bg-[#f7f4d9]/70 transition-colors"
+                    >
+                      <td className="p-3 font-mono font-bold text-[#2E2910]">
+                        #{req.id.slice(-6)}
+                      </td>
+                      <td className="p-3 font-semibold text-[#58512b]">
+                        {req.requestType}
+                      </td>
                       <td className="p-3">
-                        <p className="font-bold text-[#2E2910]">{req.requester?.name || 'Citizen'}</p>
-                        <p className="text-[10px] text-[#857c4c]">{req.requester?.contactNumber}</p>
+                        <p className="font-bold text-[#2E2910]">
+                          {req.requester?.name || "Citizen"}
+                        </p>
+                        <p className="text-[10px] text-[#857c4c]">
+                          {req.requester?.contactNumber}
+                        </p>
                       </td>
                       <td className="p-3">
                         <p className="font-semibold text-[#2E2910] max-w-xs truncate">
-                          {req.dropOffLocation?.location?.address || 'Location Details'}
+                          {req.dropOffLocation?.location?.address ||
+                            "Location Details"}
                         </p>
                         {req.dropOffLocation?.isSchoolOrHospital && (
-                          <span className="text-[10px] text-[#EB7D00] font-bold">[School / Hospital]</span>
+                          <span className="text-[10px] text-[#EB7D00] font-bold">
+                            [School / Hospital]
+                          </span>
                         )}
                       </td>
                       <td className="p-3 text-center">
                         <span
                           className={`inline-block font-mono font-bold px-2.5 py-1 rounded-full ${
                             req.priorityScore >= 70
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-amber-100 text-amber-900'
+                              ? "bg-red-100 text-red-800"
+                              : "bg-amber-100 text-amber-900"
                           }`}
                         >
                           {req.priorityScore}
                         </span>
                       </td>
                       <td className="p-3">
-                        <Badge variant={req.status.toLowerCase() as any}>{req.status}</Badge>
+                        <Badge variant={req.status.toLowerCase() as any}>
+                          {req.status}
+                        </Badge>
                       </td>
                       <td className="p-3 text-xs">
                         {req.driver ? (
                           <div>
-                            <p className="font-semibold text-[#2E2910]">{req.driver.name}</p>
-                            <p className="text-[10px] text-[#857c4c]">{req.vehicle?.type} Tanker</p>
+                            <p className="font-semibold text-[#2E2910]">
+                              {req.driver.name}
+                            </p>
+                            <p className="text-[10px] text-[#857c4c]">
+                              {req.vehicle?.type} Tanker
+                            </p>
                           </div>
                         ) : (
-                          <span className="text-gray-400 italic">Unassigned</span>
+                          <span className="text-gray-400 italic">
+                            Unassigned
+                          </span>
                         )}
                       </td>
                       <td className="p-3 text-right">
@@ -221,27 +267,33 @@ export default function RequestsPage() {
         </div>
 
         {/* Create Request Modal */}
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Water Supply Request">
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Create Water Supply Request"
+        >
           <form onSubmit={handleCreateRequest} className="space-y-5 text-xs">
             <div>
               <label className="block font-bold text-[#2E2910] uppercase tracking-wider mb-2">
                 Request Ingestion Channel
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {(['Online', 'Call', 'Letter', 'Offline'] as RequestType[]).map((t) => (
-                  <button
-                    type="button"
-                    key={t}
-                    onClick={() => setReqType(t)}
-                    className={`py-2.5 rounded-lg border font-bold text-center transition-all ${
-                      reqType === t
-                        ? 'border-[#2C5745] bg-[#2C5745] text-white shadow-md'
-                        : 'border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910] hover:bg-white'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
+                {(["Online", "Call", "Letter", "Offline"] as RequestType[]).map(
+                  (t) => (
+                    <button
+                      type="button"
+                      key={t}
+                      onClick={() => setReqType(t)}
+                      className={`py-2.5 rounded-lg border font-bold text-center transition-all ${
+                        reqType === t
+                          ? "border-[#2C5745] bg-[#2C5745] text-white shadow-md"
+                          : "border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910] hover:bg-white"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -264,8 +316,8 @@ export default function RequestsPage() {
                         onClick={() => setSelectedLocId(loc.id)}
                         className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                           isSelected
-                            ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745] shadow-sm'
-                            : 'border-[#e2dab0] bg-[#f7f4d9]/50 hover:bg-white'
+                            ? "border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745] shadow-sm"
+                            : "border-[#e2dab0] bg-[#f7f4d9]/50 hover:bg-white"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -322,7 +374,7 @@ export default function RequestsPage() {
                 disabled={creating || !selectedLocId}
                 className="px-5 py-2.5 bg-[#EB7D00] hover:bg-[#c96b00] text-white font-bold text-xs rounded-lg shadow transition-colors disabled:opacity-50"
               >
-                {creating ? 'Creating...' : 'Submit Water Request'}
+                {creating ? "Creating..." : "Submit Water Request"}
               </button>
             </div>
           </form>

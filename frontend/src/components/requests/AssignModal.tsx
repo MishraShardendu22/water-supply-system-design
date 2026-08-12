@@ -1,14 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Modal } from '../ui/Modal';
-import { Badge } from '../ui/Badge';
-import { DriverRecommendation, FillingStation, Vehicle } from '../../lib/types';
-import { driversApi, fillingStationsApi, vehiclesApi } from '../../lib/api';
+import type React from "react";
+import { useEffect, useState } from "react";
+import { driversApi, fillingStationsApi, vehiclesApi } from "../../lib/api";
+import type {
+  DriverRecommendation,
+  FillingStation,
+  Vehicle,
+} from "../../lib/types";
+import { Badge } from "../ui/Badge";
+import { Modal } from "../ui/Modal";
 
 interface AssignModalProps {
   isOpen: boolean;
   onClose: () => void;
   dropOffLocationId: string;
-  onAssign: (driverId: string, vehicleId: string, fillingStationId: string) => void;
+  onAssign: (
+    driverId: string,
+    vehicleId: string,
+    fillingStationId: string,
+  ) => void;
 }
 
 export const AssignModal: React.FC<AssignModalProps> = ({
@@ -17,13 +26,15 @@ export const AssignModal: React.FC<AssignModalProps> = ({
   dropOffLocationId,
   onAssign,
 }) => {
-  const [recommendations, setRecommendations] = useState<DriverRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<
+    DriverRecommendation[]
+  >([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [stations, setStations] = useState<FillingStation[]>([]);
 
-  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
-  const [selectedStationId, setSelectedStationId] = useState<string>('');
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
+  const [selectedStationId, setSelectedStationId] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -70,11 +81,17 @@ export const AssignModal: React.FC<AssignModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Assign Tanker Dispatch Resources">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Assign Tanker Dispatch Resources"
+    >
       {loading ? (
         <div className="py-8 text-center text-[#58512b]">
           <div className="inline-block animate-spin w-8 h-8 border-4 border-[#2C5745] border-t-transparent rounded-full mb-2" />
-          <p className="text-sm font-medium">Fetching recommended drivers & available stations...</p>
+          <p className="text-sm font-medium">
+            Fetching recommended drivers & available stations...
+          </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,8 +112,8 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                     onClick={() => setSelectedDriverId(item.driver.id)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
                       selectedDriverId === item.driver.id
-                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                        ? "border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]"
+                        : "border-[#e2dab0] bg-white hover:bg-[#f7f4d9]"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -109,25 +126,37 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                       />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#2E2910] text-sm">{item.driver.name}</span>
+                          <span className="font-bold text-[#2E2910] text-sm">
+                            {item.driver.name}
+                          </span>
                           {idx === 0 && (
                             <span className="text-[10px] bg-[#EB7D00] text-white px-2 py-0.5 rounded font-bold uppercase">
                               Top Match
                             </span>
                           )}
-                          <span className="text-xs text-[#58512b]">({item.driver.phoneType} Phone)</span>
+                          <span className="text-xs text-[#58512b]">
+                            ({item.driver.phoneType} Phone)
+                          </span>
                         </div>
                         <p className="text-xs text-[#2C5745] font-semibold mt-0.5">
                           {item.recommendationReason}
                         </p>
                         <div className="flex items-center gap-3 text-[11px] text-[#857c4c] mt-1">
-                          <span>Total Deliveries: {item.driver.totalDeliveries}</span>
+                          <span>
+                            Total Deliveries: {item.driver.totalDeliveries}
+                          </span>
                           <span>•</span>
                           <span>Rating: {item.driver.totalRating} / 5.0</span>
                         </div>
                       </div>
                     </div>
-                    <Badge variant={item.driver.status === 'Available' ? 'available' : 'busy'}>
+                    <Badge
+                      variant={
+                        item.driver.status === "Available"
+                          ? "available"
+                          : "busy"
+                      }
+                    >
                       {item.driver.status}
                     </Badge>
                   </div>
@@ -153,8 +182,8 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                     onClick={() => setSelectedVehicleId(v.id)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
                       selectedVehicleId === v.id
-                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                        ? "border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]"
+                        : "border-[#e2dab0] bg-white hover:bg-[#f7f4d9]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -169,7 +198,9 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                         <p className="font-bold text-[#2E2910] text-sm">
                           {v.type} Tanker #{v.id.slice(-4)}
                         </p>
-                        <p className="text-xs text-[#58512b]">{v.capacity.toLocaleString()} Liters</p>
+                        <p className="text-xs text-[#58512b]">
+                          {v.capacity.toLocaleString()} Liters
+                        </p>
                       </div>
                     </div>
                     <Badge variant="available">Available</Badge>
@@ -196,8 +227,8 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                     onClick={() => setSelectedStationId(st.id)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
                       selectedStationId === st.id
-                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                        ? "border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]"
+                        : "border-[#e2dab0] bg-white hover:bg-[#f7f4d9]"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -209,22 +240,25 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                         className="accent-[#2C5745]"
                       />
                       <div>
-                        <p className="font-bold text-[#2E2910] text-sm">{st.name}</p>
+                        <p className="font-bold text-[#2E2910] text-sm">
+                          {st.name}
+                        </p>
                         <p className="text-xs text-[#857c4c]">
-                          Current Tanker Queue: {st.currentTruckCount} trucks waiting
+                          Current Tanker Queue: {st.currentTruckCount} trucks
+                          waiting
                         </p>
                       </div>
                     </div>
                     <Badge
                       variant={
-                        st.availability === 'AVAILABLE'
-                          ? 'available'
-                          : st.availability === 'BUSY'
-                          ? 'busy'
-                          : 'very_busy'
+                        st.availability === "AVAILABLE"
+                          ? "available"
+                          : st.availability === "BUSY"
+                            ? "busy"
+                            : "very_busy"
                       }
                     >
-                      {st.availability.replace('_', ' ')}
+                      {st.availability.replace("_", " ")}
                     </Badge>
                   </div>
                 ))}
@@ -242,10 +276,15 @@ export const AssignModal: React.FC<AssignModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={submitting || !selectedDriverId || !selectedVehicleId || !selectedStationId}
+              disabled={
+                submitting ||
+                !selectedDriverId ||
+                !selectedVehicleId ||
+                !selectedStationId
+              }
               className="px-5 py-2.5 bg-[#2C5745] hover:bg-[#3d725c] text-white font-bold text-sm rounded-md shadow transition-colors disabled:opacity-50"
             >
-              {submitting ? 'Assigning...' : 'Confirm Assignment'}
+              {submitting ? "Assigning..." : "Confirm Assignment"}
             </button>
           </div>
         </form>

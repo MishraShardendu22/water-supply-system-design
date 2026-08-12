@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { UserRole } from '../types';
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { UserRole } from "../types";
 
 interface AuthContextType {
   userRole: UserRole;
@@ -15,9 +16,9 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  userRole: 'Admin',
-  userName: '',
-  userEmail: '',
+  userRole: "Admin",
+  userName: "",
+  userEmail: "",
   isAuthenticated: false,
   isLoaded: false,
   setUserRole: () => {},
@@ -25,19 +26,21 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userRole, setUserRoleState] = useState<UserRole>('Admin');
-  const [userName, setUserName] = useState<string>('');
-  const [userEmail, setUserEmail] = useState<string>('');
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [userRole, setUserRoleState] = useState<UserRole>("Admin");
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token');
-      const storedRole = localStorage.getItem('user_role') as UserRole;
-      const storedName = localStorage.getItem('user_name');
-      const storedEmail = localStorage.getItem('user_email');
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("auth_token");
+      const storedRole = localStorage.getItem("user_role") as UserRole;
+      const storedName = localStorage.getItem("user_name");
+      const storedEmail = localStorage.getItem("user_email");
 
       if (token) {
         setIsAuthenticated(true);
@@ -46,8 +49,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedEmail) setUserEmail(storedEmail);
       } else {
         setIsAuthenticated(false);
-        setUserName('');
-        setUserEmail('');
+        setUserName("");
+        setUserEmail("");
       }
       setIsLoaded(true);
     }
@@ -55,17 +58,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setUserRole = (role: UserRole) => {
     setUserRoleState(role);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user_role', role);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user_role", role);
     }
   };
 
-  const login = (token: string, name: string, email: string, role: UserRole) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_role', role);
-      localStorage.setItem('user_name', name);
-      localStorage.setItem('user_email', email);
+  const login = (
+    token: string,
+    name: string,
+    email: string,
+    role: UserRole,
+  ) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("auth_token", token);
+      localStorage.setItem("user_role", role);
+      localStorage.setItem("user_name", name);
+      localStorage.setItem("user_email", email);
     }
     setUserRoleState(role);
     setUserName(name);
@@ -74,14 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('user_name');
-      localStorage.removeItem('user_email');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_email");
     }
-    setUserName('');
-    setUserEmail('');
+    setUserName("");
+    setUserEmail("");
     setIsAuthenticated(false);
   };
 

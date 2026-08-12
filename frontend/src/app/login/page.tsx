@@ -1,54 +1,57 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { authApi } from '../../lib/api';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { UserRole } from '../../lib/types';
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
+import { authApi } from "../../lib/api";
+import { useAuth } from "../../lib/auth/AuthContext";
+import type { UserRole } from "../../lib/types";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [role, setRole] = useState<UserRole>('Admin');
-  const [email, setEmail] = useState('admin@water.gov');
-  const [password, setPassword] = useState('AdminPassword123!');
+  const [role, setRole] = useState<UserRole>("Admin");
+  const [email, setEmail] = useState("admin@water.gov");
+  const [password, setPassword] = useState("AdminPassword123!");
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
-    if (selectedRole === 'Driver') {
-      setEmail('+919800011111');
-      setPassword('1234');
-    } else if (selectedRole === 'DistrictManager') {
-      setEmail('+919711223344');
-      setPassword('1234');
+    if (selectedRole === "Driver") {
+      setEmail("+919800011111");
+      setPassword("1234");
+    } else if (selectedRole === "DistrictManager") {
+      setEmail("+919711223344");
+      setPassword("1234");
     } else {
-      setEmail('admin@water.gov');
-      setPassword('AdminPassword123!');
+      setEmail("admin@water.gov");
+      setPassword("AdminPassword123!");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg('');
+    setErrorMsg("");
 
     const res = await authApi.login(email, password);
     setLoading(false);
 
     if (res.success && res.data) {
       login(res.data.token, res.data.admin.name, res.data.admin.mail, role);
-      if (role === 'Driver') {
-        router.push('/driver-dashboard');
-      } else if (role === 'DistrictManager') {
-        router.push('/district-manager-dashboard');
+      if (role === "Driver") {
+        router.push("/driver-dashboard");
+      } else if (role === "DistrictManager") {
+        router.push("/district-manager-dashboard");
       } else {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
     } else {
-      setErrorMsg(res.error?.message || 'Login failed. Please check your credentials.');
+      setErrorMsg(
+        res.error?.message || "Login failed. Please check your credentials.",
+      );
     }
   };
 
@@ -79,19 +82,19 @@ export default function LoginPage() {
             <div className="grid grid-cols-3 gap-2">
               {[
                 {
-                  id: 'Admin' as UserRole,
-                  title: 'Admin Operator',
-                  desc: 'Full Control',
+                  id: "Admin" as UserRole,
+                  title: "Admin Operator",
+                  desc: "Full Control",
                 },
                 {
-                  id: 'Driver' as UserRole,
-                  title: 'Tanker Driver',
-                  desc: 'Driver Tasks',
+                  id: "Driver" as UserRole,
+                  title: "Tanker Driver",
+                  desc: "Driver Tasks",
                 },
                 {
-                  id: 'DistrictManager' as UserRole,
-                  title: 'District Manager',
-                  desc: 'Area Needs',
+                  id: "DistrictManager" as UserRole,
+                  title: "District Manager",
+                  desc: "Area Needs",
                 },
               ].map((item) => (
                 <button
@@ -100,12 +103,14 @@ export default function LoginPage() {
                   onClick={() => handleRoleSelect(item.id)}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     role === item.id
-                      ? 'border-[#2C5745] bg-[#2C5745] text-white shadow-md ring-2 ring-[#2C5745]/40'
-                      : 'border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910] hover:bg-white'
+                      ? "border-[#2C5745] bg-[#2C5745] text-white shadow-md ring-2 ring-[#2C5745]/40"
+                      : "border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910] hover:bg-white"
                   }`}
                 >
                   <p className="font-bold text-xs">{item.title}</p>
-                  <p className={`text-[10px] mt-0.5 ${role === item.id ? 'text-emerald-100' : 'text-[#857c4c]'}`}>
+                  <p
+                    className={`text-[10px] mt-0.5 ${role === item.id ? "text-emerald-100" : "text-[#857c4c]"}`}
+                  >
                     {item.desc}
                   </p>
                 </button>
@@ -115,7 +120,9 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-xs font-bold text-[#2E2910] uppercase tracking-wider mb-1.5">
-              {role === 'Admin' ? 'Official Email Address' : 'Contact Phone / Identifier'}
+              {role === "Admin"
+                ? "Official Email Address"
+                : "Contact Phone / Identifier"}
             </label>
             <input
               type="text"
@@ -150,18 +157,18 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-[#2C5745] hover:bg-[#3d725c] text-white font-bold text-sm rounded-lg shadow-md transition-all disabled:opacity-50"
           >
-            {loading ? 'Authenticating...' : `Sign In as ${role}`}
+            {loading ? "Authenticating..." : `Sign In as ${role}`}
           </button>
         </form>
 
         <div className="mt-6 pt-5 border-t border-[#e2dab0] text-center text-xs text-[#857c4c] space-y-1">
-          <p className="font-semibold text-[#2E2910]">Default Credentials by Role:</p>
+          <p className="font-semibold text-[#2E2910]">
+            Default Credentials by Role:
+          </p>
           <p className="font-mono text-[11px]">
             Admin: admin@water.gov / AdminPassword123!
           </p>
-          <p className="font-mono text-[11px]">
-            Driver: +919800011111 / 1234
-          </p>
+          <p className="font-mono text-[11px]">Driver: +919800011111 / 1234</p>
           <p className="font-mono text-[11px]">
             District Manager: +919711223344 / 1234
           </p>

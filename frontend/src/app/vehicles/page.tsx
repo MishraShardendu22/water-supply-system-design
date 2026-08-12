@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { AppShell } from '../../components/layout/AppShell';
-import { Badge } from '../../components/ui/Badge';
-import { Modal } from '../../components/ui/Modal';
-import { Vehicle, VehicleStatus, VehicleType } from '../../lib/types';
-import { vehiclesApi } from '../../lib/api';
+import type React from "react";
+import { useEffect, useState } from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { Badge } from "../../components/ui/Badge";
+import { Modal } from "../../components/ui/Modal";
+import { vehiclesApi } from "../../lib/api";
+import type { Vehicle, VehicleStatus, VehicleType } from "../../lib/types";
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [vehType, setVehType] = useState<VehicleType>('Municipal');
+  const [vehType, setVehType] = useState<VehicleType>("Municipal");
   const [capacity, setCapacity] = useState<number>(10000);
   const [creating, setCreating] = useState<boolean>(false);
 
@@ -54,9 +55,12 @@ export default function VehiclesPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-[#2E2910]">Water Tanker Fleet Management</h2>
+            <h2 className="text-xl font-bold text-[#2E2910]">
+              Water Tanker Fleet Management
+            </h2>
             <p className="text-xs text-[#857c4c]">
-              Municipal & Contracted water tankers, capacities, and active maintenance status
+              Municipal & Contracted water tankers, capacities, and active
+              maintenance status
             </p>
           </div>
           <button
@@ -69,7 +73,9 @@ export default function VehiclesPage() {
 
         <div className="card-surface overflow-hidden">
           {loading ? (
-            <div className="py-12 text-center text-xs text-[#857c4c]">Loading fleet vehicles...</div>
+            <div className="py-12 text-center text-xs text-[#857c4c]">
+              Loading fleet vehicles...
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -84,20 +90,27 @@ export default function VehiclesPage() {
                 </thead>
                 <tbody className="divide-y divide-[#f2ebd4]">
                   {vehicles.map((v) => (
-                    <tr key={v.id} className="hover:bg-[#f7f4d9]/70 transition-colors">
-                      <td className="p-3 font-mono font-bold text-[#2E2910]">#{v.id.slice(-6)}</td>
-                      <td className="p-3 font-bold text-[#2C5745]">{v.type} Tanker</td>
+                    <tr
+                      key={v.id}
+                      className="hover:bg-[#f7f4d9]/70 transition-colors"
+                    >
+                      <td className="p-3 font-mono font-bold text-[#2E2910]">
+                        #{v.id.slice(-6)}
+                      </td>
+                      <td className="p-3 font-bold text-[#2C5745]">
+                        {v.type} Tanker
+                      </td>
                       <td className="p-3 font-mono font-bold text-[#2E2910]">
                         {v.capacity.toLocaleString()} Liters
                       </td>
                       <td className="p-3">
                         <Badge
                           variant={
-                            v.status === 'Available'
-                              ? 'available'
-                              : v.status === 'On Delivery'
-                              ? 'dispatched'
-                              : 'busy'
+                            v.status === "Available"
+                              ? "available"
+                              : v.status === "On Delivery"
+                                ? "dispatched"
+                                : "busy"
                           }
                         >
                           {v.status}
@@ -106,7 +119,12 @@ export default function VehiclesPage() {
                       <td className="p-3 text-right space-x-1">
                         <select
                           value={v.status}
-                          onChange={(e) => handleStatusChange(v.id, e.target.value as VehicleStatus)}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              v.id,
+                              e.target.value as VehicleStatus,
+                            )
+                          }
                           className="px-2 py-1 text-xs border rounded bg-white text-[#2E2910] font-semibold outline-none"
                         >
                           <option value="Available">Available</option>
@@ -122,10 +140,16 @@ export default function VehiclesPage() {
           )}
         </div>
 
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Tanker Vehicle">
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Add Tanker Vehicle"
+        >
           <form onSubmit={handleCreateVehicle} className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-[#2E2910] uppercase mb-1">Ownership Type</label>
+              <label className="block font-bold text-[#2E2910] uppercase mb-1">
+                Ownership Type
+              </label>
               <select
                 value={vehType}
                 onChange={(e) => setVehType(e.target.value as VehicleType)}
@@ -136,7 +160,9 @@ export default function VehiclesPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-[#2E2910] uppercase mb-1">Water Capacity (Liters)</label>
+              <label className="block font-bold text-[#2E2910] uppercase mb-1">
+                Water Capacity (Liters)
+              </label>
               <input
                 type="number"
                 value={capacity}
@@ -147,7 +173,11 @@ export default function VehiclesPage() {
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e2dab0]">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 font-semibold">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 font-semibold"
+              >
                 Cancel
               </button>
               <button
@@ -155,7 +185,7 @@ export default function VehiclesPage() {
                 disabled={creating}
                 className="px-5 py-2 bg-[#2C5745] text-white font-bold rounded shadow disabled:opacity-50"
               >
-                {creating ? 'Saving...' : 'Add Vehicle'}
+                {creating ? "Saving..." : "Add Vehicle"}
               </button>
             </div>
           </form>

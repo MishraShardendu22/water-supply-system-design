@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { AppShell } from '../../components/layout/AppShell';
-import { Badge } from '../../components/ui/Badge';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { RequestItem } from '../../lib/types';
-import { requestsApi } from '../../lib/api';
+import type React from "react";
+import { useEffect, useState } from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { Badge } from "../../components/ui/Badge";
+import { requestsApi } from "../../lib/api";
+import { useAuth } from "../../lib/auth/AuthContext";
+import type { RequestItem } from "../../lib/types";
 
 export default function DriverDashboardPage() {
   const { userName, userEmail } = useAuth();
@@ -13,10 +14,13 @@ export default function DriverDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedReq, setSelectedReq] = useState<RequestItem | null>(null);
 
-  const [otpInput, setOtpInput] = useState<string>('');
-  const [activeStoredOtp, setActiveStoredOtp] = useState<string>('');
+  const [otpInput, setOtpInput] = useState<string>("");
+  const [activeStoredOtp, setActiveStoredOtp] = useState<string>("");
   const [verifying, setVerifying] = useState<boolean>(false);
-  const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [msg, setMsg] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const fetchDriverAssignedRequests = (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -24,22 +28,34 @@ export default function DriverDashboardPage() {
       if (res.success && res.data) {
         const active = res.data.filter((r) => {
           const isDriverStatus =
-            r.status === 'ASSIGNED' || r.status === 'DISPATCHED' || r.status === 'COMPLETED';
+            r.status === "ASSIGNED" ||
+            r.status === "DISPATCHED" ||
+            r.status === "COMPLETED";
 
           if (!userEmail) return isDriverStatus;
 
           const isMatch =
             r.driver?.contactNumber === userEmail ||
             r.driverId === userEmail ||
-            r.driver?.name?.toLowerCase().includes(userName?.toLowerCase() || '') ||
-            userName?.toLowerCase().includes(r.driver?.name?.toLowerCase() || '');
+            r.driver?.name
+              ?.toLowerCase()
+              .includes(userName?.toLowerCase() || "") ||
+            userName
+              ?.toLowerCase()
+              .includes(r.driver?.name?.toLowerCase() || "");
 
           return isMatch && isDriverStatus;
         });
 
-        const listToUse = active.length > 0 ? active : res.data.filter(
-          (r) => r.status === 'ASSIGNED' || r.status === 'DISPATCHED' || r.status === 'COMPLETED'
-        );
+        const listToUse =
+          active.length > 0
+            ? active
+            : res.data.filter(
+                (r) =>
+                  r.status === "ASSIGNED" ||
+                  r.status === "DISPATCHED" ||
+                  r.status === "COMPLETED",
+              );
 
         // Deduplicate assignments strictly by request ID
         const uniqueMap = new Map<string, RequestItem>();
@@ -60,7 +76,7 @@ export default function DriverDashboardPage() {
   };
 
   const checkLocalStorageForOTP = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     if (selectedReq) {
       const stored = localStorage.getItem(`active_otp_${selectedReq.id}`);
       if (stored && stored !== activeStoredOtp) {
@@ -81,26 +97,26 @@ export default function DriverDashboardPage() {
     }, 1000);
 
     const handleStorageEvent = (e: StorageEvent) => {
-      if (e.key && e.key.startsWith('active_otp_') && e.newValue) {
+      if (e.key && e.key.startsWith("active_otp_") && e.newValue) {
         if (selectedReq && e.key === `active_otp_${selectedReq.id}`) {
           setActiveStoredOtp(e.newValue);
         }
       }
     };
-    window.addEventListener('storage', handleStorageEvent);
+    window.addEventListener("storage", handleStorageEvent);
 
     return () => {
       clearInterval(dataInterval);
       clearInterval(otpInterval);
-      window.removeEventListener('storage', handleStorageEvent);
+      window.removeEventListener("storage", handleStorageEvent);
     };
   }, [userEmail, userName, selectedReq?.id]);
 
   useEffect(() => {
-    if (selectedReq && typeof window !== 'undefined') {
+    if (selectedReq && typeof window !== "undefined") {
       const stored = localStorage.getItem(`active_otp_${selectedReq.id}`);
       if (stored) setActiveStoredOtp(stored);
-      else setActiveStoredOtp('');
+      else setActiveStoredOtp("");
     }
   }, [selectedReq]);
 
@@ -115,20 +131,28 @@ export default function DriverDashboardPage() {
     setVerifying(false);
 
     if (res.success) {
-      setMsg({ type: 'success', text: 'Delivery successfully verified and completed!' });
-      setOtpInput('');
-      if (typeof window !== 'undefined') {
+      setMsg({
+        type: "success",
+        text: "Delivery successfully verified and completed!",
+      });
+      setOtpInput("");
+      if (typeof window !== "undefined") {
         localStorage.removeItem(`active_otp_${selectedReq.id}`);
       }
-      setActiveStoredOtp('');
+      setActiveStoredOtp("");
       fetchDriverAssignedRequests();
     } else {
-      setMsg({ type: 'error', text: res.error?.message || 'Invalid OTP code entered' });
+      setMsg({
+        type: "error",
+        text: res.error?.message || "Invalid OTP code entered",
+      });
     }
   };
 
-  const hasOtpBeenDispatched = Boolean(activeStoredOtp || selectedReq?.otpExpiresAt);
-  const effectiveOtpCode = activeStoredOtp || '495820';
+  const hasOtpBeenDispatched = Boolean(
+    activeStoredOtp || selectedReq?.otpExpiresAt,
+  );
+  const effectiveOtpCode = activeStoredOtp || "495820";
 
   return (
     <AppShell>
@@ -146,10 +170,11 @@ export default function DriverDashboardPage() {
                 </span>
               </div>
               <h2 className="text-xl font-bold mt-0.5">
-                Tanker Driver Portal — {userName || 'Driver Ramesh Chand'}
+                Tanker Driver Portal — {userName || "Driver Ramesh Chand"}
               </h2>
               <p className="text-xs text-emerald-100 mt-0.5">
-                Task-focused route guidance, landmark navigation, and resident OTP verification.
+                Task-focused route guidance, landmark navigation, and resident
+                OTP verification.
               </p>
             </div>
             <div className="text-right">
@@ -161,11 +186,18 @@ export default function DriverDashboardPage() {
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-xs text-[#857c4c]">Loading driver assignments...</div>
+          <div className="py-12 text-center text-xs text-[#857c4c]">
+            Loading driver assignments...
+          </div>
         ) : assignedRequests.length === 0 ? (
           <div className="card-surface p-8 text-center text-xs text-[#857c4c]">
-            <p className="text-base font-bold text-[#2E2910] mb-1">No Active Delivery Assignments</p>
-            <p>You currently have no active tanker deliveries assigned to your driver account ({userName || 'Driver'}).</p>
+            <p className="text-base font-bold text-[#2E2910] mb-1">
+              No Active Delivery Assignments
+            </p>
+            <p>
+              You currently have no active tanker deliveries assigned to your
+              driver account ({userName || "Driver"}).
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -181,19 +213,26 @@ export default function DriverDashboardPage() {
                   onClick={() => setSelectedReq(r)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     selectedReq?.id === r.id
-                      ? 'border-[#2C5745] bg-white ring-2 ring-[#2C5745] shadow-md'
-                      : 'border-[#e2dab0] bg-[#f7f4d9]/50 hover:bg-white'
+                      ? "border-[#2C5745] bg-white ring-2 ring-[#2C5745] shadow-md"
+                      : "border-[#e2dab0] bg-[#f7f4d9]/50 hover:bg-white"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono font-bold text-xs text-[#2E2910]">#{r.id.slice(-6)}</span>
-                    <Badge variant={r.status.toLowerCase() as any}>{r.status}</Badge>
+                    <span className="font-mono font-bold text-xs text-[#2E2910]">
+                      #{r.id.slice(-6)}
+                    </span>
+                    <Badge variant={r.status.toLowerCase() as any}>
+                      {r.status}
+                    </Badge>
                   </div>
                   <p className="font-bold text-sm text-[#2E2910] line-clamp-1">
-                    {r.dropOffLocation?.location?.address || 'St. Marys Hospital Ward 9'}
+                    {r.dropOffLocation?.location?.address ||
+                      "St. Marys Hospital Ward 9"}
                   </p>
                   <p className="text-xs text-[#2C5745] font-semibold mt-1">
-                    Landmark: {r.dropOffLocation?.location?.landmark || 'Opposite Main Emergency Gate'}
+                    Landmark:{" "}
+                    {r.dropOffLocation?.location?.landmark ||
+                      "Opposite Main Emergency Gate"}
                   </p>
                 </div>
               ))}
@@ -205,9 +244,12 @@ export default function DriverDashboardPage() {
                 <div className="card-surface p-6 space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-[#e2dab0]">
                     <div>
-                      <span className="text-xs text-[#857c4c] font-bold">Delivery Destination</span>
+                      <span className="text-xs text-[#857c4c] font-bold">
+                        Delivery Destination
+                      </span>
                       <h3 className="text-lg font-bold text-[#2E2910]">
-                        {selectedReq.dropOffLocation?.location?.address || 'St. Marys Hospital Ward 9'}
+                        {selectedReq.dropOffLocation?.location?.address ||
+                          "St. Marys Hospital Ward 9"}
                       </h3>
                     </div>
                     <Badge variant={selectedReq.status.toLowerCase() as any}>
@@ -221,16 +263,26 @@ export default function DriverDashboardPage() {
                       Driver Route & Landmark Guidance
                     </h4>
                     <p className="text-sm font-bold text-[#2C5745]">
-                      Landmark: {selectedReq.dropOffLocation?.location?.landmark || 'Opposite Main Emergency Gate'}
+                      Landmark:{" "}
+                      {selectedReq.dropOffLocation?.location?.landmark ||
+                        "Opposite Main Emergency Gate"}
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                       <div>
-                        <span className="text-[#857c4c]">Traffic Risk:</span>{' '}
-                        <span className="font-bold text-[#2E2910]">{selectedReq.dropOffLocation?.trafficRisk || 'Medium'} Risk</span>
+                        <span className="text-[#857c4c]">Traffic Risk:</span>{" "}
+                        <span className="font-bold text-[#2E2910]">
+                          {selectedReq.dropOffLocation?.trafficRisk || "Medium"}{" "}
+                          Risk
+                        </span>
                       </div>
                       <div>
-                        <span className="text-[#857c4c]">Est. Travel Time:</span>{' '}
-                        <span className="font-bold text-[#2E2910]">{selectedReq.dropOffLocation?.normalTravelTime || 15} mins</span>
+                        <span className="text-[#857c4c]">
+                          Est. Travel Time:
+                        </span>{" "}
+                        <span className="font-bold text-[#2E2910]">
+                          {selectedReq.dropOffLocation?.normalTravelTime || 15}{" "}
+                          mins
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -238,23 +290,31 @@ export default function DriverDashboardPage() {
                   {/* Recipient Details */}
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
-                      <span className="text-[#857c4c] font-semibold">Recipient Contact:</span>
+                      <span className="text-[#857c4c] font-semibold">
+                        Recipient Contact:
+                      </span>
                       <p className="font-bold text-[#2E2910] text-sm mt-0.5">
-                        {selectedReq.requester?.name || 'Dr. Sunita Sharma'}
+                        {selectedReq.requester?.name || "Dr. Sunita Sharma"}
                       </p>
-                      <p className="text-[#58512b]">{selectedReq.requester?.contactNumber || '+919876543210'}</p>
+                      <p className="text-[#58512b]">
+                        {selectedReq.requester?.contactNumber ||
+                          "+919876543210"}
+                      </p>
                     </div>
                     <div>
-                      <span className="text-[#857c4c] font-semibold">Assigned Filling Station:</span>
+                      <span className="text-[#857c4c] font-semibold">
+                        Assigned Filling Station:
+                      </span>
                       <p className="font-bold text-[#2C5745] text-sm mt-0.5">
-                        {selectedReq.fillingStation?.name || 'Northern Reservoir Station 2'}
+                        {selectedReq.fillingStation?.name ||
+                          "Northern Reservoir Station 2"}
                       </p>
                     </div>
                   </div>
 
                   {/* Resident SMS Receiver Alert Card - REVEALED AS SOON AS MANAGER SENDS OTP */}
-                  {selectedReq.status === 'DISPATCHED' && (
-                    hasOtpBeenDispatched ? (
+                  {selectedReq.status === "DISPATCHED" &&
+                    (hasOtpBeenDispatched ? (
                       <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-900">
@@ -266,9 +326,17 @@ export default function DriverDashboardPage() {
                         </div>
                         <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-emerald-200">
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">SMS Sent to {selectedReq.requester?.contactNumber || '+919876543210'}:</p>
+                            <p className="text-xs text-gray-500 font-medium">
+                              SMS Sent to{" "}
+                              {selectedReq.requester?.contactNumber ||
+                                "+919876543210"}
+                              :
+                            </p>
                             <p className="text-sm font-bold text-[#2E2910] mt-0.5">
-                              Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{effectiveOtpCode}</span>
+                              Resident Delivery OTP:{" "}
+                              <span className="font-mono text-base font-black text-[#EB7D00]">
+                                {effectiveOtpCode}
+                              </span>
                             </p>
                           </div>
                           <button
@@ -282,17 +350,26 @@ export default function DriverDashboardPage() {
                       </div>
                     ) : (
                       <div className="p-4 bg-[#f7f4d9] border border-[#dcd499] rounded-xl text-xs">
-                        <p className="font-bold text-[#2E2910]">Awaiting Resident OTP Dispatch</p>
-                        <p className="text-[#857c4c]">Manager has not sent the OTP SMS to the resident yet. Please wait for the Manager to click "Send Delivery OTP to Resident".</p>
+                        <p className="font-bold text-[#2E2910]">
+                          Awaiting Resident OTP Dispatch
+                        </p>
+                        <p className="text-[#857c4c]">
+                          Manager has not sent the OTP SMS to the resident yet.
+                          Please wait for the Manager to click "Send Delivery
+                          OTP to Resident".
+                        </p>
                       </div>
-                    )
-                  )}
+                    ))}
 
                   {/* OTP Verification Box */}
-                  {selectedReq.status !== 'COMPLETED' ? (
-                    <form onSubmit={handleCompleteWithOTP} className="pt-4 border-t border-[#e2dab0] space-y-3">
+                  {selectedReq.status !== "COMPLETED" ? (
+                    <form
+                      onSubmit={handleCompleteWithOTP}
+                      className="pt-4 border-t border-[#e2dab0] space-y-3"
+                    >
                       <label className="block text-xs font-bold text-[#2E2910] uppercase tracking-wider">
-                        Ask resident for their 6-digit OTP code to complete delivery
+                        Ask resident for their 6-digit OTP code to complete
+                        delivery
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -309,14 +386,16 @@ export default function DriverDashboardPage() {
                           disabled={verifying || otpInput.length !== 6}
                           className="px-6 py-2.5 bg-[#2C5745] hover:bg-[#3d725c] text-white font-bold text-xs rounded-lg shadow transition-colors disabled:opacity-50"
                         >
-                          {verifying ? 'Verifying...' : 'Verify OTP'}
+                          {verifying ? "Verifying..." : "Verify OTP"}
                         </button>
                       </div>
 
                       {msg && (
                         <p
                           className={`text-xs font-bold ${
-                            msg.type === 'success' ? 'text-emerald-700' : 'text-red-700'
+                            msg.type === "success"
+                              ? "text-emerald-700"
+                              : "text-red-700"
                           }`}
                         >
                           {msg.text}

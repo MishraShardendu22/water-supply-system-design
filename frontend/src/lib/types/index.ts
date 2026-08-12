@@ -1,19 +1,24 @@
 export type RequestStatus =
-  | 'PENDING'
-  | 'VERIFIED'
-  | 'ASSIGNED'
-  | 'DISPATCHED'
-  | 'COMPLETED'
-  | 'CANCELLED';
+  | "PENDING"
+  | "VERIFIED"
+  | "ASSIGNED"
+  | "DISPATCHED"
+  | "COMPLETED"
+  | "CANCELLED";
 
-export type RequestType = 'Letter' | 'Call' | 'Online' | 'Offline';
-export type DriverStatus = 'Available' | 'On Delivery' | 'Inactive';
-export type PhoneType = 'Basic' | 'Smart';
-export type VehicleStatus = 'Available' | 'On Delivery' | 'Maintenance';
-export type VehicleType = 'Contracted' | 'Municipal';
-export type TrafficRisk = 'Low' | 'Medium' | 'High';
-export type StationAvailability = 'AVAILABLE' | 'BUSY' | 'VERY_BUSY';
-export type UserRole = 'Admin' | 'Manager' | 'Dispatcher' | 'Driver' | 'DistrictManager';
+export type RequestType = "Letter" | "Call" | "Online" | "Offline";
+export type DriverStatus = "Available" | "On Delivery" | "Inactive";
+export type PhoneType = "Basic" | "Smart";
+export type VehicleStatus = "Available" | "On Delivery" | "Maintenance";
+export type VehicleType = "Contracted" | "Municipal";
+export type TrafficRisk = "Low" | "Medium" | "High";
+export type StationAvailability = "AVAILABLE" | "BUSY" | "VERY_BUSY";
+export type UserRole =
+  | "Admin"
+  | "Manager"
+  | "Dispatcher"
+  | "Driver"
+  | "DistrictManager";
 
 export interface Location {
   id: string;

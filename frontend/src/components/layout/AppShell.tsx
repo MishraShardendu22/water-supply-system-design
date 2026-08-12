@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { UserRole } from '../../lib/types';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../lib/auth/AuthContext";
+import type { UserRole } from "../../lib/types";
 
 interface NavItem {
   label: string;
@@ -14,19 +15,61 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Admin Dashboard', shortLabel: 'DB', href: '/dashboard', roles: ['Admin'] },
-  { label: 'Requests Queue', shortLabel: 'RQ', href: '/requests', roles: ['Admin', 'DistrictManager'] },
-  { label: 'Driver Operations', shortLabel: 'DR', href: '/driver-dashboard', roles: ['Driver'] },
-  { label: 'District Manager Area', shortLabel: 'DM', href: '/district-manager-dashboard', roles: ['DistrictManager'] },
-  { label: 'Drivers', shortLabel: 'DV', href: '/drivers', roles: ['Admin'] },
-  { label: 'Vehicles', shortLabel: 'VH', href: '/vehicles', roles: ['Admin'] },
-  { label: 'Filling Stations', shortLabel: 'FS', href: '/filling-stations', roles: ['Admin'] },
-  { label: 'Drop-Off Locations', shortLabel: 'LOC', href: '/locations', roles: ['Admin'] },
-  { label: 'District Managers', shortLabel: 'MGR', href: '/district-managers', roles: ['Admin'] },
-  { label: 'Administration', shortLabel: 'ADM', href: '/admins', roles: ['Admin'] },
+  {
+    label: "Admin Dashboard",
+    shortLabel: "DB",
+    href: "/dashboard",
+    roles: ["Admin"],
+  },
+  {
+    label: "Requests Queue",
+    shortLabel: "RQ",
+    href: "/requests",
+    roles: ["Admin", "DistrictManager"],
+  },
+  {
+    label: "Driver Operations",
+    shortLabel: "DR",
+    href: "/driver-dashboard",
+    roles: ["Driver"],
+  },
+  {
+    label: "District Manager Area",
+    shortLabel: "DM",
+    href: "/district-manager-dashboard",
+    roles: ["DistrictManager"],
+  },
+  { label: "Drivers", shortLabel: "DV", href: "/drivers", roles: ["Admin"] },
+  { label: "Vehicles", shortLabel: "VH", href: "/vehicles", roles: ["Admin"] },
+  {
+    label: "Filling Stations",
+    shortLabel: "FS",
+    href: "/filling-stations",
+    roles: ["Admin"],
+  },
+  {
+    label: "Drop-Off Locations",
+    shortLabel: "LOC",
+    href: "/locations",
+    roles: ["Admin"],
+  },
+  {
+    label: "District Managers",
+    shortLabel: "MGR",
+    href: "/district-managers",
+    roles: ["Admin"],
+  },
+  {
+    label: "Administration",
+    shortLabel: "ADM",
+    href: "/admins",
+    roles: ["Admin"],
+  },
 ];
 
-export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppShell: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const pathname = usePathname();
   const router = useRouter();
   const { userRole, userName, isAuthenticated, isLoaded, logout } = useAuth();
@@ -34,17 +77,17 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('sidebar_collapsed');
-      if (stored === 'true') setIsCollapsed(true);
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("sidebar_collapsed");
+      if (stored === "true") setIsCollapsed(true);
     }
   }, []);
 
   const toggleCollapse = () => {
     setIsCollapsed((prev) => {
       const next = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('sidebar_collapsed', String(next));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sidebar_collapsed", String(next));
       }
       return next;
     });
@@ -54,38 +97,40 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!isAuthenticated && pathname !== '/login') {
-      router.push('/login');
+    if (!isAuthenticated && pathname !== "/login") {
+      router.push("/login");
       return;
     }
 
     if (isAuthenticated) {
-      if (userRole === 'Driver' && pathname !== '/driver-dashboard') {
-        router.push('/driver-dashboard');
+      if (userRole === "Driver" && pathname !== "/driver-dashboard") {
+        router.push("/driver-dashboard");
       } else if (
-        userRole === 'DistrictManager' &&
-        pathname !== '/district-manager-dashboard' &&
-        !pathname.startsWith('/requests')
+        userRole === "DistrictManager" &&
+        pathname !== "/district-manager-dashboard" &&
+        !pathname.startsWith("/requests")
       ) {
-        router.push('/district-manager-dashboard');
+        router.push("/district-manager-dashboard");
       }
     }
   }, [isAuthenticated, isLoaded, userRole, pathname, router]);
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   // Filter navigation links strictly for the user's role
-  const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
+  const visibleNavItems = NAV_ITEMS.filter((item) =>
+    item.roles.includes(userRole),
+  );
 
   return (
     <div className="min-h-screen flex bg-[#f9f8f0] text-[#2E2910]">
       {/* Desktop Sidebar with Expand/Collapse State */}
       <aside
         className={`hidden lg:flex flex-col bg-[#2C5745] text-white border-r border-[#1e3d30] transition-all duration-300 ${
-          isCollapsed ? 'w-20' : 'w-64'
+          isCollapsed ? "w-20" : "w-64"
         }`}
       >
         {/* Sidebar Header */}
@@ -96,25 +141,31 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <h1 className="font-bold text-base tracking-wide text-[#EBE3A7]">MUNI WATER</h1>
-                <p className="text-[11px] text-emerald-200 truncate">District Supply System</p>
+                <h1 className="font-bold text-base tracking-wide text-[#EBE3A7]">
+                  MUNI WATER
+                </h1>
+                <p className="text-[11px] text-emerald-200 truncate">
+                  District Supply System
+                </p>
               </div>
             )}
           </div>
 
           <button
             onClick={toggleCollapse}
-            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             className="p-1.5 rounded-lg bg-[#3d725c] hover:bg-[#EB7D00] text-white text-xs font-mono font-bold transition-colors"
           >
-            {isCollapsed ? '>>' : '<<'}
+            {isCollapsed ? ">>" : "<<"}
           </button>
         </div>
 
         {/* Navigation Items */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {visibleNavItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
 
             return (
               <Link
@@ -122,11 +173,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 href={item.href}
                 title={item.label}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  isCollapsed ? 'justify-center' : ''
+                  isCollapsed ? "justify-center" : ""
                 } ${
                   isActive
-                    ? 'bg-[#EB7D00] text-white shadow'
-                    : 'text-[#EBE3A7] hover:bg-[#3d725c] hover:text-white'
+                    ? "bg-[#EB7D00] text-white shadow"
+                    : "text-[#EBE3A7] hover:bg-[#3d725c] hover:text-white"
                 }`}
               >
                 <span className="w-6 text-center font-bold font-mono text-xs bg-[#1e3d30]/60 px-1 py-0.5 rounded">
@@ -142,8 +193,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <div className="p-3 border-t border-[#3d725c] bg-[#1e3d30]/60">
           {!isCollapsed ? (
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold text-[#EBE3A7]">Logged in as:</p>
-              <p className="text-xs font-bold text-white truncate">{userName || 'User'}</p>
+              <p className="text-[11px] font-semibold text-[#EBE3A7]">
+                Logged in as:
+              </p>
+              <p className="text-xs font-bold text-white truncate">
+                {userName || "User"}
+              </p>
               <div className="flex items-center justify-between pt-1">
                 <span className="px-2 py-0.5 bg-[#EB7D00] text-white text-[10px] font-bold rounded">
                   {userRole}
@@ -188,16 +243,22 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <button
               onClick={toggleCollapse}
               className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-[#f7f4d9] hover:bg-[#e2dab0] border border-[#dcd499] rounded text-xs font-bold text-[#2C5745] transition-colors"
-              title={isCollapsed ? 'Expand Sidebar Navigation' : 'Collapse Sidebar Navigation'}
+              title={
+                isCollapsed
+                  ? "Expand Sidebar Navigation"
+                  : "Collapse Sidebar Navigation"
+              }
             >
-              <span className="font-mono">{isCollapsed ? '>>' : '<<'}</span>
-              <span>{isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}</span>
+              <span className="font-mono">{isCollapsed ? ">>" : "<<"}</span>
+              <span>{isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}</span>
             </button>
             <div>
               <h2 className="text-lg font-bold text-[#2E2910]">
                 Water Supply Operations Control
               </h2>
-              <p className="text-xs text-[#857c4c]">Municipal Distribution & Dispatch Platform</p>
+              <p className="text-xs text-[#857c4c]">
+                Municipal Distribution & Dispatch Platform
+              </p>
             </div>
           </div>
 
@@ -212,10 +273,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <div className="flex items-center gap-3 pl-3 border-l border-[#e2dab0]">
               <div className="text-right hidden sm:block">
                 <p className="text-xs font-bold text-[#2E2910]">
-                  {isAuthenticated ? userName : 'Not Logged In'}
+                  {isAuthenticated ? userName : "Not Logged In"}
                 </p>
                 <p className="text-[10px] text-[#857c4c]">
-                  {isAuthenticated ? 'Authenticated Session' : 'Public Access'}
+                  {isAuthenticated ? "Authenticated Session" : "Public Access"}
                 </p>
               </div>
 

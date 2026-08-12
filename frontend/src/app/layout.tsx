@@ -15,10 +15,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Water Supply Management System - Municipal Control Portal",
-  description: "Municipal Water Supply Management, Dispatch, Priority Scoring & Delivery Verification System",
+  description:
+    "Municipal Water Supply Management, Dispatch, Priority Scoring & Delivery Verification System",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"

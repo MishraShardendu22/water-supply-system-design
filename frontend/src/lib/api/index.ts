@@ -1,5 +1,4 @@
-import { apiFetch } from './client';
-import {
+import type {
   Administration,
   ApiResponse,
   DistrictManager,
@@ -12,13 +11,17 @@ import {
   PriorityCalculationResult,
   RequestItem,
   Vehicle,
-} from '../types';
+} from "../types";
+import { apiFetch } from "./client";
 
 // --- AUTH API ---
 export const authApi = {
-  login: async (mail: string, password: string): Promise<ApiResponse<{ token: string; admin: Administration }>> => {
-    return apiFetch<{ token: string; admin: Administration }>('/auth/login', {
-      method: 'POST',
+  login: async (
+    mail: string,
+    password: string,
+  ): Promise<ApiResponse<{ token: string; admin: Administration }>> => {
+    return apiFetch<{ token: string; admin: Administration }>("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ mail, password }),
     });
   },
@@ -27,7 +30,7 @@ export const authApi = {
 // --- REQUESTS API ---
 export const requestsApi = {
   getRequests: async (status?: string): Promise<ApiResponse<RequestItem[]>> => {
-    const query = status ? `?status=${status}` : '';
+    const query = status ? `?status=${status}` : "";
     const res = await apiFetch<RequestItem[]>(`/requests${query}`);
     if (res.success && res.data) return res;
     return { success: true, data: [] };
@@ -42,50 +45,58 @@ export const requestsApi = {
     requesterId: string;
     dropOffLocationId: string;
   }): Promise<ApiResponse<RequestItem>> => {
-    return apiFetch<RequestItem>('/requests', {
-      method: 'POST',
+    return apiFetch<RequestItem>("/requests", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
 
-  calculatePriority: async (id: string): Promise<ApiResponse<PriorityCalculationResult>> => {
-    return apiFetch<PriorityCalculationResult>(`/requests/${id}/calculate-priority`, {
-      method: 'POST',
-    });
+  calculatePriority: async (
+    id: string,
+  ): Promise<ApiResponse<PriorityCalculationResult>> => {
+    return apiFetch<PriorityCalculationResult>(
+      `/requests/${id}/calculate-priority`,
+      {
+        method: "POST",
+      },
+    );
   },
 
   assignRequest: async (
     id: string,
-    input: { driverId: string; vehicleId: string; fillingStationId: string }
+    input: { driverId: string; vehicleId: string; fillingStationId: string },
   ): Promise<ApiResponse<RequestItem>> => {
     return apiFetch<RequestItem>(`/requests/${id}/assign`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
 
   dispatchRequest: async (id: string): Promise<ApiResponse<RequestItem>> => {
     return apiFetch<RequestItem>(`/requests/${id}/dispatch`, {
-      method: 'POST',
+      method: "POST",
     });
   },
 
   generateOTP: async (id: string): Promise<ApiResponse<OTPResponse>> => {
     return apiFetch<OTPResponse>(`/requests/${id}/generate-otp`, {
-      method: 'POST',
+      method: "POST",
     });
   },
 
-  completeRequest: async (id: string, otp: string): Promise<ApiResponse<RequestItem>> => {
+  completeRequest: async (
+    id: string,
+    otp: string,
+  ): Promise<ApiResponse<RequestItem>> => {
     return apiFetch<RequestItem>(`/requests/${id}/complete`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ otp }),
     });
   },
 
   cancelRequest: async (id: string): Promise<ApiResponse<RequestItem>> => {
     return apiFetch<RequestItem>(`/requests/${id}/cancel`, {
-      method: 'POST',
+      method: "POST",
     });
   },
 };
@@ -93,7 +104,7 @@ export const requestsApi = {
 // --- DRIVERS API ---
 export const driversApi = {
   getDrivers: async (): Promise<ApiResponse<Driver[]>> => {
-    const res = await apiFetch<Driver[]>('/drivers');
+    const res = await apiFetch<Driver[]>("/drivers");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
@@ -102,21 +113,31 @@ export const driversApi = {
     return apiFetch<Driver>(`/drivers/${id}`);
   },
 
-  getRecommendedDrivers: async (dropOffLocationId: string): Promise<ApiResponse<DriverRecommendation[]>> => {
-    const res = await apiFetch<DriverRecommendation[]>(`/drivers/recommended?dropOffLocationId=${dropOffLocationId}`);
+  getRecommendedDrivers: async (
+    dropOffLocationId: string,
+  ): Promise<ApiResponse<DriverRecommendation[]>> => {
+    const res = await apiFetch<DriverRecommendation[]>(
+      `/drivers/recommended?dropOffLocationId=${dropOffLocationId}`,
+    );
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  getDriverRequests: async (id: string): Promise<ApiResponse<RequestItem[]>> => {
+  getDriverRequests: async (
+    id: string,
+  ): Promise<ApiResponse<RequestItem[]>> => {
     const res = await apiFetch<RequestItem[]>(`/drivers/${id}/requests`);
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  createDriver: async (input: { name: string; contactNumber: string; phoneType: string }): Promise<ApiResponse<Driver>> => {
-    return apiFetch<Driver>('/drivers', {
-      method: 'POST',
+  createDriver: async (input: {
+    name: string;
+    contactNumber: string;
+    phoneType: string;
+  }): Promise<ApiResponse<Driver>> => {
+    return apiFetch<Driver>("/drivers", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
@@ -125,27 +146,33 @@ export const driversApi = {
 // --- VEHICLES API ---
 export const vehiclesApi = {
   getVehicles: async (): Promise<ApiResponse<Vehicle[]>> => {
-    const res = await apiFetch<Vehicle[]>('/vehicles');
+    const res = await apiFetch<Vehicle[]>("/vehicles");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
   getAvailableVehicles: async (): Promise<ApiResponse<Vehicle[]>> => {
-    const res = await apiFetch<Vehicle[]>('/vehicles/available');
+    const res = await apiFetch<Vehicle[]>("/vehicles/available");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  createVehicle: async (input: { type: string; capacity: number }): Promise<ApiResponse<Vehicle>> => {
-    return apiFetch<Vehicle>('/vehicles', {
-      method: 'POST',
+  createVehicle: async (input: {
+    type: string;
+    capacity: number;
+  }): Promise<ApiResponse<Vehicle>> => {
+    return apiFetch<Vehicle>("/vehicles", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
 
-  updateVehicleStatus: async (id: string, status: string): Promise<ApiResponse<Vehicle>> => {
+  updateVehicleStatus: async (
+    id: string,
+    status: string,
+  ): Promise<ApiResponse<Vehicle>> => {
     return apiFetch<Vehicle>(`/vehicles/${id}/status`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ status }),
     });
   },
@@ -154,21 +181,30 @@ export const vehiclesApi = {
 // --- FILLING STATIONS API ---
 export const fillingStationsApi = {
   getFillingStations: async (): Promise<ApiResponse<FillingStation[]>> => {
-    const res = await apiFetch<FillingStation[]>('/filling-stations');
+    const res = await apiFetch<FillingStation[]>("/filling-stations");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  getRecommendedFillingStations: async (dropOffLocationId?: string): Promise<ApiResponse<FillingStation[]>> => {
-    const query = dropOffLocationId ? `?dropOffLocationId=${dropOffLocationId}` : '';
-    const res = await apiFetch<FillingStation[]>(`/filling-stations/recommended${query}`);
+  getRecommendedFillingStations: async (
+    dropOffLocationId?: string,
+  ): Promise<ApiResponse<FillingStation[]>> => {
+    const query = dropOffLocationId
+      ? `?dropOffLocationId=${dropOffLocationId}`
+      : "";
+    const res = await apiFetch<FillingStation[]>(
+      `/filling-stations/recommended${query}`,
+    );
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  createFillingStation: async (input: { name: string; locationId: string }): Promise<ApiResponse<FillingStation>> => {
-    return apiFetch<FillingStation>('/filling-stations', {
-      method: 'POST',
+  createFillingStation: async (input: {
+    name: string;
+    locationId: string;
+  }): Promise<ApiResponse<FillingStation>> => {
+    return apiFetch<FillingStation>("/filling-stations", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
@@ -177,12 +213,14 @@ export const fillingStationsApi = {
 // --- LOCATIONS API ---
 export const locationsApi = {
   getDropOffLocations: async (): Promise<ApiResponse<DropOffLocation[]>> => {
-    const res = await apiFetch<DropOffLocation[]>('/drop-off-locations');
+    const res = await apiFetch<DropOffLocation[]>("/drop-off-locations");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  getDropOffLocationByID: async (id: string): Promise<ApiResponse<DropOffLocation>> => {
+  getDropOffLocationByID: async (
+    id: string,
+  ): Promise<ApiResponse<DropOffLocation>> => {
     return apiFetch<DropOffLocation>(`/drop-off-locations/${id}`);
   },
 
@@ -196,14 +234,18 @@ export const locationsApi = {
     normalTravelTime: number;
     isSchoolOrHospital: boolean;
   }): Promise<ApiResponse<DropOffLocation>> => {
-    return apiFetch<DropOffLocation>('/drop-off-locations', {
-      method: 'POST',
+    return apiFetch<DropOffLocation>("/drop-off-locations", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
 
-  getDriversForLocation: async (id: string): Promise<ApiResponse<DriverRecommendation[]>> => {
-    const res = await apiFetch<DriverRecommendation[]>(`/drop-off-locations/${id}/drivers`);
+  getDriversForLocation: async (
+    id: string,
+  ): Promise<ApiResponse<DriverRecommendation[]>> => {
+    const res = await apiFetch<DriverRecommendation[]>(
+      `/drop-off-locations/${id}/drivers`,
+    );
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
@@ -211,9 +253,13 @@ export const locationsApi = {
 
 // --- PERSONS API ---
 export const personsApi = {
-  createPerson: async (input: { name: string; contactNumber: string; address?: string }): Promise<ApiResponse<NormalPerson>> => {
-    return apiFetch<NormalPerson>('/persons', {
-      method: 'POST',
+  createPerson: async (input: {
+    name: string;
+    contactNumber: string;
+    address?: string;
+  }): Promise<ApiResponse<NormalPerson>> => {
+    return apiFetch<NormalPerson>("/persons", {
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
@@ -222,13 +268,17 @@ export const personsApi = {
 // --- DISTRICT MANAGERS API ---
 export const districtManagersApi = {
   getDistrictManagers: async (): Promise<ApiResponse<DistrictManager[]>> => {
-    const res = await apiFetch<DistrictManager[]>('/district-managers');
+    const res = await apiFetch<DistrictManager[]>("/district-managers");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
 
-  getDistrictManagerRequests: async (id: string): Promise<ApiResponse<RequestItem[]>> => {
-    const res = await apiFetch<RequestItem[]>(`/district-managers/${id}/requests`);
+  getDistrictManagerRequests: async (
+    id: string,
+  ): Promise<ApiResponse<RequestItem[]>> => {
+    const res = await apiFetch<RequestItem[]>(
+      `/district-managers/${id}/requests`,
+    );
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },
@@ -237,7 +287,7 @@ export const districtManagersApi = {
 // --- ADMINS API ---
 export const adminsApi = {
   getAdmins: async (): Promise<ApiResponse<Administration[]>> => {
-    const res = await apiFetch<Administration[]>('/admins');
+    const res = await apiFetch<Administration[]>("/admins");
     if (res.success && res.data) return res;
     return { success: true, data: [] };
   },

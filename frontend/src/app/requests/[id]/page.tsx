@@ -1,17 +1,24 @@
-'use client';
+"use client";
 
-import React, { use, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { AppShell } from '../../../components/layout/AppShell';
-import { Badge } from '../../../components/ui/Badge';
-import { Timeline } from '../../../components/requests/Timeline';
-import { PriorityBreakdown } from '../../../components/requests/PriorityBreakdown';
-import { AssignModal } from '../../../components/requests/AssignModal';
-import { PriorityCalculationResult, RequestItem } from '../../../lib/types';
-import { requestsApi } from '../../../lib/api';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { use, useEffect, useState } from "react";
+import { AppShell } from "../../../components/layout/AppShell";
+import { AssignModal } from "../../../components/requests/AssignModal";
+import { PriorityBreakdown } from "../../../components/requests/PriorityBreakdown";
+import { Timeline } from "../../../components/requests/Timeline";
+import { Badge } from "../../../components/ui/Badge";
+import { requestsApi } from "../../../lib/api";
+import type {
+  PriorityCalculationResult,
+  RequestItem,
+} from "../../../lib/types";
 
-export default function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function RequestDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const requestId = resolvedParams.id;
   const router = useRouter();
@@ -19,7 +26,8 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
   const [req, setReq] = useState<RequestItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const [priorityResult, setPriorityResult] = useState<PriorityCalculationResult | null>(null);
+  const [priorityResult, setPriorityResult] =
+    useState<PriorityCalculationResult | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
@@ -55,9 +63,17 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleAssignResources = async (driverId: string, vehicleId: string, fillingStationId: string) => {
+  const handleAssignResources = async (
+    driverId: string,
+    vehicleId: string,
+    fillingStationId: string,
+  ) => {
     setActionLoading(true);
-    const res = await requestsApi.assignRequest(requestId, { driverId, vehicleId, fillingStationId });
+    const res = await requestsApi.assignRequest(requestId, {
+      driverId,
+      vehicleId,
+      fillingStationId,
+    });
     setActionLoading(false);
     if (res.success) {
       loadRequest();
@@ -79,7 +95,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
     setActionLoading(false);
     if (res.success && res.data) {
       const code = res.data.otp;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.setItem(`active_otp_${requestId}`, code);
       }
       setOtpSentNotice(true);
@@ -88,7 +104,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
   };
 
   const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel this water request?')) return;
+    if (!confirm("Are you sure you want to cancel this water request?")) return;
     setActionLoading(true);
     const res = await requestsApi.cancelRequest(requestId);
     setActionLoading(false);
@@ -113,7 +129,10 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
       <AppShell>
         <div className="py-16 text-center space-y-4">
           <p className="text-base font-bold text-red-800">Request Not Found</p>
-          <Link href="/requests" className="text-xs text-[#2C5745] underline font-semibold">
+          <Link
+            href="/requests"
+            className="text-xs text-[#2C5745] underline font-semibold"
+          >
             ← Back to Requests Queue
           </Link>
         </div>
@@ -138,7 +157,9 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
             <span className="px-2 py-0.5 bg-[#EB7D00] text-white text-[10px] font-bold rounded-full">
               LIVE UPDATES ACTIVE
             </span>
-            <span className="text-xs font-mono font-bold text-[#857c4c]">Request ID: {req.id}</span>
+            <span className="text-xs font-mono font-bold text-[#857c4c]">
+              Request ID: {req.id}
+            </span>
           </div>
         </div>
 
@@ -158,12 +179,16 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
         {/* Primary Operational Action Bar */}
         <div className="card-surface p-4 bg-[#f7f4d9] border border-[#dcd499] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-[#2E2910]">Current Status:</span>
-            <Badge variant={req.status.toLowerCase() as any}>{req.status}</Badge>
+            <span className="text-xs font-bold text-[#2E2910]">
+              Current Status:
+            </span>
+            <Badge variant={req.status.toLowerCase() as any}>
+              {req.status}
+            </Badge>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {req.status === 'PENDING' && (
+            {req.status === "PENDING" && (
               <button
                 onClick={handleCalculatePriority}
                 disabled={actionLoading}
@@ -173,7 +198,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </button>
             )}
 
-            {(req.status === 'PENDING' || req.status === 'VERIFIED') && (
+            {(req.status === "PENDING" || req.status === "VERIFIED") && (
               <button
                 onClick={() => setIsAssignOpen(true)}
                 disabled={actionLoading}
@@ -183,7 +208,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </button>
             )}
 
-            {req.status === 'ASSIGNED' && (
+            {req.status === "ASSIGNED" && (
               <button
                 onClick={handleDispatch}
                 disabled={actionLoading}
@@ -193,7 +218,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </button>
             )}
 
-            {req.status === 'DISPATCHED' && (
+            {req.status === "DISPATCHED" && (
               <button
                 onClick={handleGenerateOTP}
                 disabled={actionLoading}
@@ -203,7 +228,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </button>
             )}
 
-            {req.status !== 'COMPLETED' && req.status !== 'CANCELLED' && (
+            {req.status !== "COMPLETED" && req.status !== "CANCELLED" && (
               <button
                 onClick={handleCancel}
                 disabled={actionLoading}
@@ -216,13 +241,16 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* OTP Dispatched Notice (Manager/Admin View: NO plain-text OTP code displayed) */}
-        {(otpSentNotice || req.otpExpiresAt) && req.status === 'DISPATCHED' && (
+        {(otpSentNotice || req.otpExpiresAt) && req.status === "DISPATCHED" && (
           <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-xl text-xs space-y-1 shadow-sm">
             <div className="font-bold text-emerald-900">
-              Delivery OTP Dispatched to Resident ({req.requester?.contactNumber || 'Resident Phone'})
+              Delivery OTP Dispatched to Resident (
+              {req.requester?.contactNumber || "Resident Phone"})
             </div>
             <p className="text-[#58512b]">
-              The 6-digit OTP code has been generated and sent to the resident's registered phone number. Tanker driver will collect and verify this code upon delivery.
+              The 6-digit OTP code has been generated and sent to the resident's
+              registered phone number. Tanker driver will collect and verify
+              this code upon delivery.
             </p>
           </div>
         )}
@@ -248,38 +276,53 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Destination Address:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Destination Address:
+                  </span>
                   <p className="font-bold text-[#2E2910] text-sm mt-0.5">
-                    {dropOff?.location?.address || 'N/A'}
+                    {dropOff?.location?.address || "N/A"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Landmark / Driver Guidance:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Landmark / Driver Guidance:
+                  </span>
                   <p className="font-semibold text-[#2C5745] mt-0.5">
-                    Landmark: {dropOff?.location?.landmark || 'No specific landmark given'}
+                    Landmark:{" "}
+                    {dropOff?.location?.landmark ||
+                      "No specific landmark given"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Geographic Coordinates:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Geographic Coordinates:
+                  </span>
                   <p className="font-mono text-[#2E2910] font-medium mt-0.5">
-                    Lat: {dropOff?.location?.latitude}, Lng: {dropOff?.location?.longitude}
+                    Lat: {dropOff?.location?.latitude}, Lng:{" "}
+                    {dropOff?.location?.longitude}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Traffic Risk & Travel Time:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Traffic Risk & Travel Time:
+                  </span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <Badge variant={dropOff?.trafficRisk?.toLowerCase() as any}>
                       Traffic: {dropOff?.trafficRisk} Risk
                     </Badge>
-                    <span className="text-[#2E2910] font-bold">~{dropOff?.normalTravelTime} mins travel</span>
+                    <span className="text-[#2E2910] font-bold">
+                      ~{dropOff?.normalTravelTime} mins travel
+                    </span>
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Private Borewell Status:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Private Borewell Status:
+                  </span>
                   {dropOff?.hasPrivateBorewell ? (
                     <span className="inline-block mt-0.5 px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded font-bold">
                       Has Alternative Private Borewell (-30 Priority)
@@ -292,7 +335,9 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div>
-                  <span className="text-[#857c4c] font-semibold block">Public Priority Category:</span>
+                  <span className="text-[#857c4c] font-semibold block">
+                    Public Priority Category:
+                  </span>
                   {dropOff?.isSchoolOrHospital ? (
                     <span className="inline-block mt-0.5 px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded font-bold">
                       Public School / Hospital (+30 Priority)
@@ -312,9 +357,15 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 <h4 className="text-xs uppercase tracking-wider font-bold text-[#58512b] mb-2">
                   Requester Information
                 </h4>
-                <p className="font-bold text-[#2E2910] text-sm">{req.requester?.name}</p>
-                <p className="text-xs text-[#58512b] mt-0.5">Contact: {req.requester?.contactNumber}</p>
-                <p className="text-xs text-[#857c4c] mt-0.5">Address: {req.requester?.address || 'N/A'}</p>
+                <p className="font-bold text-[#2E2910] text-sm">
+                  {req.requester?.name}
+                </p>
+                <p className="text-xs text-[#58512b] mt-0.5">
+                  Contact: {req.requester?.contactNumber}
+                </p>
+                <p className="text-xs text-[#857c4c] mt-0.5">
+                  Address: {req.requester?.address || "N/A"}
+                </p>
                 <span className="inline-block mt-2 text-[10px] bg-[#f4f1db] px-2 py-0.5 rounded font-bold text-[#2C5745]">
                   Channel: {req.requestType} Request
                 </span>
@@ -326,10 +377,19 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 </h4>
                 {req.driver ? (
                   <div className="space-y-1 text-xs">
-                    <p className="font-bold text-[#2E2910]">Driver: {req.driver.name}</p>
-                    <p className="text-[#58512b]">Phone: {req.driver.contactNumber} ({req.driver.phoneType})</p>
-                    <p className="text-[#58512b]">Vehicle: {req.vehicle?.type} Tanker ({req.vehicle?.capacity.toLocaleString()}L)</p>
-                    <p className="text-[#2C5745] font-semibold">Filling Station: {req.fillingStation?.name}</p>
+                    <p className="font-bold text-[#2E2910]">
+                      Driver: {req.driver.name}
+                    </p>
+                    <p className="text-[#58512b]">
+                      Phone: {req.driver.contactNumber} ({req.driver.phoneType})
+                    </p>
+                    <p className="text-[#58512b]">
+                      Vehicle: {req.vehicle?.type} Tanker (
+                      {req.vehicle?.capacity.toLocaleString()}L)
+                    </p>
+                    <p className="text-[#2C5745] font-semibold">
+                      Filling Station: {req.fillingStation?.name}
+                    </p>
                   </div>
                 ) : (
                   <div className="text-xs text-[#857c4c] italic py-2">

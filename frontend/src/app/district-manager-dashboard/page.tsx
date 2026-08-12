@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { AppShell } from '../../components/layout/AppShell';
-import { StatCard } from '../../components/ui/StatCard';
-import { Badge } from '../../components/ui/Badge';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { DropOffLocation, RequestItem } from '../../lib/types';
-import { locationsApi, requestsApi } from '../../lib/api';
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { Badge } from "../../components/ui/Badge";
+import { StatCard } from "../../components/ui/StatCard";
+import { locationsApi, requestsApi } from "../../lib/api";
+import { useAuth } from "../../lib/auth/AuthContext";
+import type { DropOffLocation, RequestItem } from "../../lib/types";
 
 export default function DistrictManagerDashboardPage() {
   const { userName } = useAuth();
@@ -16,7 +16,10 @@ export default function DistrictManagerDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchDistrictData = () => {
-    Promise.all([requestsApi.getRequests(), locationsApi.getDropOffLocations()]).then(([reqRes, locRes]) => {
+    Promise.all([
+      requestsApi.getRequests(),
+      locationsApi.getDropOffLocations(),
+    ]).then(([reqRes, locRes]) => {
       if (reqRes.success && reqRes.data) setRequests(reqRes.data);
       if (locRes.success && locRes.data) setLocations(locRes.data);
       setLoading(false);
@@ -33,9 +36,15 @@ export default function DistrictManagerDashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const pendingVerificationCount = requests.filter((r) => r.status === 'PENDING').length;
-  const highPriorityCount = requests.filter((r) => r.priorityScore >= 70).length;
-  const borewellLocationsCount = locations.filter((l) => l.hasPrivateBorewell).length;
+  const pendingVerificationCount = requests.filter(
+    (r) => r.status === "PENDING",
+  ).length;
+  const highPriorityCount = requests.filter(
+    (r) => r.priorityScore >= 70,
+  ).length;
+  const borewellLocationsCount = locations.filter(
+    (l) => l.hasPrivateBorewell,
+  ).length;
 
   return (
     <AppShell>
@@ -46,10 +55,11 @@ export default function DistrictManagerDashboardPage() {
             District Manager & Local Representative Portal
           </span>
           <h2 className="text-xl font-bold mt-0.5">
-            District Portal — {userName || 'Manoj Gupta'}
+            District Portal — {userName || "Manoj Gupta"}
           </h2>
           <p className="text-xs text-emerald-100 mt-0.5">
-            Review neighborhood requests, verify private borewell availability, and monitor local tanker fulfillment.
+            Review neighborhood requests, verify private borewell availability,
+            and monitor local tanker fulfillment.
           </p>
         </div>
 
@@ -57,19 +67,19 @@ export default function DistrictManagerDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             title="Pending District Verification"
-            value={loading ? '...' : pendingVerificationCount}
+            value={loading ? "..." : pendingVerificationCount}
             subtitle="Requires priority calculation review"
             accentColor="#EB7D00"
           />
           <StatCard
             title="High Priority Requests"
-            value={loading ? '...' : highPriorityCount}
+            value={loading ? "..." : highPriorityCount}
             subtitle="Schools / Hospitals / Emergency"
             accentColor="#991b1b"
           />
           <StatCard
             title="Private Borewell Locations"
-            value={loading ? '...' : borewellLocationsCount}
+            value={loading ? "..." : borewellLocationsCount}
             subtitle="Alternative source flagged (-30 Priority)"
             accentColor="#58512b"
           />
@@ -82,7 +92,9 @@ export default function DistrictManagerDashboardPage() {
               <h3 className="text-sm font-bold uppercase tracking-wider text-[#2E2910]">
                 District Water Supply Requests
               </h3>
-              <p className="text-xs text-[#857c4c]">Local neighborhood queue & verification status</p>
+              <p className="text-xs text-[#857c4c]">
+                Local neighborhood queue & verification status
+              </p>
             </div>
             <Link
               href="/requests"
@@ -93,9 +105,13 @@ export default function DistrictManagerDashboardPage() {
           </div>
 
           {loading ? (
-            <div className="py-8 text-center text-xs text-[#857c4c]">Loading area requests...</div>
+            <div className="py-8 text-center text-xs text-[#857c4c]">
+              Loading area requests...
+            </div>
           ) : requests.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#857c4c]">No active requests in this district.</div>
+            <div className="py-8 text-center text-xs text-[#857c4c]">
+              No active requests in this district.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -112,11 +128,20 @@ export default function DistrictManagerDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-[#f2ebd4]">
                   {requests.map((r) => (
-                    <tr key={r.id} className="hover:bg-[#f7f4d9]/70 transition-colors">
-                      <td className="p-2.5 font-mono font-bold text-[#2E2910]">#{r.id.slice(-6)}</td>
+                    <tr
+                      key={r.id}
+                      className="hover:bg-[#f7f4d9]/70 transition-colors"
+                    >
+                      <td className="p-2.5 font-mono font-bold text-[#2E2910]">
+                        #{r.id.slice(-6)}
+                      </td>
                       <td className="p-2.5">
-                        <p className="font-bold text-[#2E2910]">{r.requester?.name}</p>
-                        <p className="text-[10px] text-[#857c4c]">{r.requester?.contactNumber}</p>
+                        <p className="font-bold text-[#2E2910]">
+                          {r.requester?.name}
+                        </p>
+                        <p className="text-[10px] text-[#857c4c]">
+                          {r.requester?.contactNumber}
+                        </p>
                       </td>
                       <td className="p-2.5">
                         <p className="font-semibold text-[#2E2910]">
@@ -132,14 +157,18 @@ export default function DistrictManagerDashboardPage() {
                             Borewell Yes (-30)
                           </span>
                         ) : (
-                          <span className="text-gray-400 font-semibold">No Borewell</span>
+                          <span className="text-gray-400 font-semibold">
+                            No Borewell
+                          </span>
                         )}
                       </td>
                       <td className="p-2.5 text-center font-mono font-bold text-[#EB7D00]">
                         {r.priorityScore}
                       </td>
                       <td className="p-2.5">
-                        <Badge variant={r.status.toLowerCase() as any}>{r.status}</Badge>
+                        <Badge variant={r.status.toLowerCase() as any}>
+                          {r.status}
+                        </Badge>
                       </td>
                       <td className="p-2.5 text-right">
                         <Link
