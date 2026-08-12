@@ -122,8 +122,8 @@ def main():
     post("/district-managers", {
         "name": "Representative Manoj Gupta",
         "contactNumber": "+919711223344",
-        "normalPersonId": p1,
-        "locationId": loc1
+        "normalPersonId": p2,
+        "locationId": loc2
     }, token)
 
     print("\nDATABASE SEEDING & DISPATCH SETUP COMPLETED SUCCESSFULLY!")
