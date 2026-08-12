@@ -51,7 +51,7 @@ func (r *DistrictManagerRepository) GetDistrictManagerByID(ctx context.Context, 
 	err := row.Scan(
 		&dm.ID, &dm.Name, &dm.ContactNumber, &dm.NormalPersonID, &dm.LocationID, &dm.CreatedAt,
 		&p.ID, &p.Name, &p.ContactNumber, &p.Address, &p.CreatedAt,
-		&locID, &locAddress, &locLat, &locLng, &locLandmark, &locCreatedAt,
+		&locID, &locAddress, &locLat, &locLng, &locCreatedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -75,6 +75,26 @@ func (r *DistrictManagerRepository) GetDistrictManagerByID(ctx context.Context, 
 		dm.Location = l
 	}
 
+	return &dm, nil
+}
+
+func (r *DistrictManagerRepository) GetDistrictManagerByContactOrID(ctx context.Context, identifier string) (*models.DistrictManager, error) {
+	query := `
+		SELECT dm.id, dm.name, dm.contact_number, dm.normal_person_id, dm.location_id, dm.created_at
+		FROM district_managers dm
+		WHERE dm.contact_number = $1 OR dm.id::text = $1 OR dm.name ILIKE $1
+		LIMIT 1
+	`
+	row := r.db.QueryRowContext(ctx, query, identifier)
+
+	var dm models.DistrictManager
+	err := row.Scan(&dm.ID, &dm.Name, &dm.ContactNumber, &dm.NormalPersonID, &dm.LocationID, &dm.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to query district manager by identifier: %w", err)
+	}
 	return &dm, nil
 }
 

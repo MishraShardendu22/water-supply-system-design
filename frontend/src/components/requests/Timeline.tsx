@@ -24,8 +24,8 @@ export const Timeline: React.FC<TimelineProps> = ({
 }) => {
   if (currentStatus === 'CANCELLED') {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center text-red-800 font-semibold">
-        ✖ Request Cancelled
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center text-red-800 font-semibold text-xs uppercase tracking-wider">
+        Request Cancelled
       </div>
     );
   }
@@ -66,13 +66,13 @@ export const Timeline: React.FC<TimelineProps> = ({
           return (
             <div key={stage.key} className="relative z-10 flex flex-col items-center group">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 ${
                   isDone
                     ? 'bg-[#2C5745] text-white shadow-md'
                     : 'bg-[#f4f1db] text-[#58512b] border-2 border-[#dcd499]'
                 } ${isCurrent ? 'ring-4 ring-[#EB7D00]/40 scale-110' : ''}`}
               >
-                {isDone ? '✓' : idx + 1}
+                {idx + 1}
               </div>
               <span
                 className={`mt-2 text-xs font-semibold text-center max-w-[90px] ${

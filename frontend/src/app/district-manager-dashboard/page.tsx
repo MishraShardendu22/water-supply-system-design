@@ -5,20 +5,32 @@ import Link from 'next/link';
 import { AppShell } from '../../components/layout/AppShell';
 import { StatCard } from '../../components/ui/StatCard';
 import { Badge } from '../../components/ui/Badge';
+import { useAuth } from '../../lib/auth/AuthContext';
 import { DropOffLocation, RequestItem } from '../../lib/types';
 import { locationsApi, requestsApi } from '../../lib/api';
 
 export default function DistrictManagerDashboardPage() {
+  const { userName } = useAuth();
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [locations, setLocations] = useState<DropOffLocation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
+  const fetchDistrictData = () => {
     Promise.all([requestsApi.getRequests(), locationsApi.getDropOffLocations()]).then(([reqRes, locRes]) => {
       if (reqRes.success && reqRes.data) setRequests(reqRes.data);
       if (locRes.success && locRes.data) setLocations(locRes.data);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchDistrictData();
+
+    const interval = setInterval(() => {
+      fetchDistrictData();
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const pendingVerificationCount = requests.filter((r) => r.status === 'PENDING').length;
@@ -33,7 +45,9 @@ export default function DistrictManagerDashboardPage() {
           <span className="text-xs uppercase tracking-wider text-[#EBE3A7] font-bold">
             District Manager & Local Representative Portal
           </span>
-          <h2 className="text-xl font-bold mt-0.5">District Water Needs & Verification</h2>
+          <h2 className="text-xl font-bold mt-0.5">
+            District Portal — {userName || 'Manoj Gupta'}
+          </h2>
           <p className="text-xs text-emerald-100 mt-0.5">
             Review neighborhood requests, verify private borewell availability, and monitor local tanker fulfillment.
           </p>
@@ -46,21 +60,18 @@ export default function DistrictManagerDashboardPage() {
             value={loading ? '...' : pendingVerificationCount}
             subtitle="Requires priority calculation review"
             accentColor="#EB7D00"
-            icon="📋"
           />
           <StatCard
             title="High Priority Requests"
             value={loading ? '...' : highPriorityCount}
             subtitle="Schools / Hospitals / Emergency"
             accentColor="#991b1b"
-            icon="🚨"
           />
           <StatCard
             title="Private Borewell Locations"
             value={loading ? '...' : borewellLocationsCount}
             subtitle="Alternative source flagged (-30 Priority)"
             accentColor="#58512b"
-            icon="🚰"
           />
         </div>
 
@@ -112,7 +123,7 @@ export default function DistrictManagerDashboardPage() {
                           {r.dropOffLocation?.location?.address}
                         </p>
                         <p className="text-[10px] text-[#2C5745]">
-                          📍 {r.dropOffLocation?.location?.landmark}
+                          Landmark: {r.dropOffLocation?.location?.landmark}
                         </p>
                       </td>
                       <td className="p-2.5 text-center">

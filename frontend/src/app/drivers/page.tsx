@@ -88,10 +88,10 @@ export default function DriversPage() {
                         <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                           d.phoneType === 'Smart' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'
                         }`}>
-                          📱 {d.phoneType} Phone
+                          {d.phoneType} Phone
                         </span>
                       </td>
-                      <td className="p-3 text-center font-bold text-[#2E2910]">⭐ {d.totalRating}</td>
+                      <td className="p-3 text-center font-bold text-[#2E2910]">{d.totalRating} / 5.0</td>
                       <td className="p-3 text-center font-mono font-bold text-[#2C5745]">
                         {d.totalDeliveries}
                       </td>

@@ -8,8 +8,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { Timeline } from '../../../components/requests/Timeline';
 import { PriorityBreakdown } from '../../../components/requests/PriorityBreakdown';
 import { AssignModal } from '../../../components/requests/AssignModal';
-import { OTPModal } from '../../../components/requests/OTPModal';
-import { OTPResponse, PriorityCalculationResult, RequestItem } from '../../../lib/types';
+import { PriorityCalculationResult, RequestItem } from '../../../lib/types';
 import { requestsApi } from '../../../lib/api';
 
 export default function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,23 +21,34 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
   const [priorityResult, setPriorityResult] = useState<PriorityCalculationResult | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState<boolean>(false);
-
-  const [otpData, setOtpData] = useState<OTPResponse | null>(null);
-  const [isOTPOpen, setIsOTPOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  const loadRequest = () => {
-    setLoading(true);
+  const [otpSentNotice, setOtpSentNotice] = useState<boolean>(false);
+  const [dispatchedOTPCode, setDispatchedOTPCode] = useState<string>('');
+
+  const loadRequest = (showLoader = false) => {
+    if (showLoader) setLoading(true);
     requestsApi.getRequestByID(requestId).then((res) => {
       if (res.success && res.data) {
         setReq(res.data);
       }
       setLoading(false);
     });
+
+    if (typeof window !== 'undefined') {
+      const savedOtp = localStorage.getItem(`active_otp_${requestId}`);
+      if (savedOtp) setDispatchedOTPCode(savedOtp);
+    }
   };
 
   useEffect(() => {
-    loadRequest();
+    loadRequest(true);
+
+    const interval = setInterval(() => {
+      loadRequest(false);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [requestId]);
 
   const handleCalculatePriority = async () => {
@@ -74,8 +84,13 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
     const res = await requestsApi.generateOTP(requestId);
     setActionLoading(false);
     if (res.success && res.data) {
-      setOtpData(res.data);
-      setIsOTPOpen(true);
+      const code = res.data.otp;
+      setDispatchedOTPCode(code);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`active_otp_${requestId}`, code);
+      }
+      setOtpSentNotice(true);
+      loadRequest();
     }
   };
 
@@ -126,7 +141,12 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
           >
             ← Back to Requests Queue
           </Link>
-          <span className="text-xs font-mono font-bold text-[#857c4c]">Request ID: {req.id}</span>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-[#EB7D00] text-white text-[10px] font-bold rounded-full">
+              LIVE UPDATES ACTIVE
+            </span>
+            <span className="text-xs font-mono font-bold text-[#857c4c]">Request ID: {req.id}</span>
+          </div>
         </div>
 
         {/* 5-stage Lifecycle Timeline Component */}
@@ -156,7 +176,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 disabled={actionLoading}
                 className="px-4 py-2 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded shadow transition-colors"
               >
-                ⚡ Calculate Priority & Verify
+                Calculate Priority & Verify
               </button>
             )}
 
@@ -166,7 +186,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 disabled={actionLoading}
                 className="px-4 py-2 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded shadow transition-colors"
               >
-                🚚 Assign Driver & Tanker
+                Assign Driver & Tanker
               </button>
             )}
 
@@ -176,27 +196,18 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 disabled={actionLoading}
                 className="px-4 py-2 bg-[#EB7D00] hover:bg-[#c96b00] text-white text-xs font-bold rounded shadow transition-colors"
               >
-                🚀 Dispatch Tanker Now
+                Dispatch Tanker Now
               </button>
             )}
 
             {req.status === 'DISPATCHED' && (
-              <>
-                <button
-                  onClick={handleGenerateOTP}
-                  disabled={actionLoading}
-                  className="px-4 py-2 bg-[#EB7D00] hover:bg-[#c96b00] text-white text-xs font-bold rounded shadow transition-colors"
-                >
-                  🔑 Generate Delivery OTP
-                </button>
-                <button
-                  onClick={() => setIsOTPOpen(true)}
-                  disabled={actionLoading}
-                  className="px-4 py-2 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded shadow transition-colors"
-                >
-                  ✅ Verify OTP & Complete
-                </button>
-              </>
+              <button
+                onClick={handleGenerateOTP}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-[#EB7D00] hover:bg-[#c96b00] text-white text-xs font-bold rounded shadow transition-colors"
+              >
+                Send Delivery OTP to Resident
+              </button>
             )}
 
             {req.status !== 'COMPLETED' && req.status !== 'CANCELLED' && (
@@ -210,6 +221,23 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
             )}
           </div>
         </div>
+
+        {/* OTP Dispatched Banner */}
+        {(otpSentNotice || dispatchedOTPCode || req.otpExpiresAt) && req.status === 'DISPATCHED' && (
+          <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-xl text-xs space-y-1 shadow-sm">
+            <div className="flex items-center justify-between font-bold text-emerald-900">
+              <span>Delivery OTP Dispatched to Resident ({req.requester?.contactNumber || 'Resident Phone'})</span>
+              {dispatchedOTPCode && (
+                <span className="font-mono text-base font-black px-3 py-0.5 bg-emerald-200 text-emerald-950 rounded border border-emerald-400">
+                  OTP Code: {dispatchedOTPCode}
+                </span>
+              )}
+            </div>
+            <p className="text-[#58512b]">
+              The 6-digit OTP code has been generated and sent to the resident. Tanker driver will collect and verify this code upon delivery.
+            </p>
+          </div>
+        )}
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -241,7 +269,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <span className="text-[#857c4c] font-semibold block">Landmark / Driver Guidance:</span>
                   <p className="font-semibold text-[#2C5745] mt-0.5">
-                    📍 {dropOff?.location?.landmark || 'No specific landmark given'}
+                    Landmark: {dropOff?.location?.landmark || 'No specific landmark given'}
                   </p>
                 </div>
 
@@ -266,11 +294,11 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                   <span className="text-[#857c4c] font-semibold block">Private Borewell Status:</span>
                   {dropOff?.hasPrivateBorewell ? (
                     <span className="inline-block mt-0.5 px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded font-bold">
-                      ⚠️ Has Alternative Private Borewell (-30 Priority)
+                      Has Alternative Private Borewell (-30 Priority)
                     </span>
                   ) : (
                     <span className="inline-block mt-0.5 text-emerald-800 font-bold">
-                      ✓ No Private Borewell Available
+                      No Private Borewell Available
                     </span>
                   )}
                 </div>
@@ -279,7 +307,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                   <span className="text-[#857c4c] font-semibold block">Public Priority Category:</span>
                   {dropOff?.isSchoolOrHospital ? (
                     <span className="inline-block mt-0.5 px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded font-bold">
-                      🏥 Public School / Hospital (+30 Priority)
+                      Public School / Hospital (+30 Priority)
                     </span>
                   ) : (
                     <span className="inline-block mt-0.5 text-[#58512b] font-medium">
@@ -316,7 +344,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                     <p className="text-[#2C5745] font-semibold">Filling Station: {req.fillingStation?.name}</p>
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-400 italic py-2">
+                  <div className="text-xs text-[#857c4c] italic py-2">
                     No driver, vehicle, or filling station assigned yet.
                   </div>
                 )}
@@ -331,15 +359,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
           onClose={() => setIsAssignOpen(false)}
           dropOffLocationId={req.dropOffLocationId}
           onAssign={handleAssignResources}
-        />
-
-        {/* OTP Modal */}
-        <OTPModal
-          isOpen={isOTPOpen}
-          onClose={() => setIsOTPOpen(false)}
-          requestId={req.id}
-          otpData={otpData}
-          onCompleted={() => loadRequest()}
         />
       </div>
     </AppShell>

@@ -96,7 +96,7 @@ export default function FillingStationsPage() {
 
                   <h3 className="font-bold text-sm text-[#2E2910]">{st.name}</h3>
                   <p className="text-xs text-[#58512b] mt-1">
-                    📍 {st.location?.address || 'Municipal Station Area'}
+                    Area: {st.location?.address || 'Municipal Station Area'}
                   </p>
                 </div>
 

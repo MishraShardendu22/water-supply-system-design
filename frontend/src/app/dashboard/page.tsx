@@ -15,7 +15,7 @@ export default function AdminDashboardPage() {
   const [stations, setStations] = useState<FillingStation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
+  const fetchDashboardData = () => {
     Promise.all([
       requestsApi.getRequests(),
       driversApi.getDrivers(),
@@ -28,6 +28,16 @@ export default function AdminDashboardPage() {
       if (stRes.success && stRes.data) setStations(stRes.data);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const pendingCount = requests.filter((r) => r.status === 'PENDING' || r.status === 'VERIFIED').length;
@@ -45,9 +55,14 @@ export default function AdminDashboardPage() {
         {/* Banner */}
         <div className="bg-[#2C5745] text-white p-6 rounded-xl shadow border border-[#1e3d30] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <span className="text-xs uppercase tracking-widest text-[#EBE3A7] font-bold">
-              District Summer Shortage Ops
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-widest text-[#EBE3A7] font-bold">
+                District Summer Shortage Ops
+              </span>
+              <span className="px-2 py-0.5 bg-[#EB7D00] text-white text-[10px] font-bold rounded-full">
+                LIVE UPDATES ACTIVE
+              </span>
+            </div>
             <h2 className="text-2xl font-black mt-1">Water Supply Operations Control</h2>
             <p className="text-xs text-emerald-100 mt-1 max-w-xl">
               Real-time monitoring of tanker distribution, priority scoring, driver familiarity matching, and filling station congestion.
@@ -70,28 +85,24 @@ export default function AdminDashboardPage() {
             value={loading ? '...' : pendingCount}
             subtitle="Awaiting dispatch assignment"
             accentColor="#EB7D00"
-            icon="⏳"
           />
           <StatCard
             title="High Priority"
             value={loading ? '...' : highPriorityCount}
             subtitle="Schools / Hospitals / Emergency"
             accentColor="#991b1b"
-            icon="🚨"
           />
           <StatCard
             title="In Progress"
             value={loading ? '...' : inProgressCount}
             subtitle="Assigned / Dispatched tankers"
             accentColor="#1e40af"
-            icon="🚛"
           />
           <StatCard
             title="Completed Today"
             value={loading ? '...' : completedCount}
             subtitle="OTP delivery verified"
             accentColor="#166534"
-            icon="✅"
           />
         </div>
 
@@ -102,21 +113,18 @@ export default function AdminDashboardPage() {
             value={loading ? '...' : `${availableDriversCount} / ${drivers.length}`}
             subtitle="Locality familiar drivers ready"
             accentColor="#2C5745"
-            icon="👨‍✈️"
           />
           <StatCard
             title="Available Vehicles"
             value={loading ? '...' : `${availableVehiclesCount} / ${vehicles.length}`}
             subtitle="Municipal & Contracted tankers"
             accentColor="#2C5745"
-            icon="🚚"
           />
           <StatCard
             title="Busy Filling Stations"
             value={loading ? '...' : `${busyStationsCount} / ${stations.length}`}
             subtitle="Queue congestion monitoring"
             accentColor="#EB7D00"
-            icon="⛽"
           />
         </div>
 
@@ -229,7 +237,7 @@ export default function AdminDashboardPage() {
                               {req.dropOffLocation?.location?.address || 'Location Details'}
                             </p>
                             {req.dropOffLocation?.isSchoolOrHospital && (
-                              <span className="text-[10px] text-[#EB7D00] font-bold">🏥 School/Hospital</span>
+                              <span className="text-[10px] text-[#EB7D00] font-bold">[School/Hospital]</span>
                             )}
                           </td>
                           <td className="p-2.5 text-center">

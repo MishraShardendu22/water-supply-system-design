@@ -48,6 +48,26 @@ func (r *DriverRepository) GetDriverByID(ctx context.Context, id string) (*model
 	return &d, nil
 }
 
+func (r *DriverRepository) GetDriverByContactOrID(ctx context.Context, identifier string) (*models.Driver, error) {
+	query := `
+		SELECT id, name, contact_number, phone_type, total_rating, total_deliveries, status, created_at
+		FROM drivers
+		WHERE contact_number = $1 OR id::text = $1 OR name ILIKE $1
+		LIMIT 1
+	`
+	row := r.db.QueryRowContext(ctx, query, identifier)
+
+	var d models.Driver
+	err := row.Scan(&d.ID, &d.Name, &d.ContactNumber, &d.PhoneType, &d.TotalRating, &d.TotalDeliveries, &d.Status, &d.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to query driver by identifier: %w", err)
+	}
+	return &d, nil
+}
+
 func (r *DriverRepository) ListDrivers(ctx context.Context) ([]*models.Driver, error) {
 	query := `
 		SELECT id, name, contact_number, phone_type, total_rating, total_deliveries, status, created_at

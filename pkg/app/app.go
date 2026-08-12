@@ -45,7 +45,7 @@ func BuildApp() (*fiber.App, *config.Config, error) {
 	reqRepo := repositories.NewRequestRepository(db)
 
 	// Services
-	adminService := services.NewAdminService(adminRepo, cfg)
+	adminService := services.NewAdminService(adminRepo, driverRepo, dmRepo, cfg)
 	priorityService := services.NewPriorityService(reqRepo, locationRepo)
 	otpService := services.NewOTPService(reqRepo, cfg.OTPExpiration)
 	driverService := services.NewDriverService(driverRepo, reqRepo)

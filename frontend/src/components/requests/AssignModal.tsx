@@ -123,7 +123,7 @@ export const AssignModal: React.FC<AssignModalProps> = ({
                         <div className="flex items-center gap-3 text-[11px] text-[#857c4c] mt-1">
                           <span>Total Deliveries: {item.driver.totalDeliveries}</span>
                           <span>•</span>
-                          <span>Rating: ⭐ {item.driver.totalRating}</span>
+                          <span>Rating: {item.driver.totalRating} / 5.0</span>
                         </div>
                       </div>
                     </div>

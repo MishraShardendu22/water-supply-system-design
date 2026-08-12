@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"water-supply-system/internal/config"
 	"water-supply-system/internal/controllers"
@@ -22,6 +23,13 @@ type RouterDependencies struct {
 }
 
 func SetupRoutes(app *fiber.App, deps *RouterDependencies) {
+	// Enable CORS for frontend cross-origin access
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+	}))
+
 	// Middleware setup
 	app.Use(middleware.Recovery())
 	app.Use(middleware.RequestID())
@@ -41,8 +49,7 @@ func SetupRoutes(app *fiber.App, deps *RouterDependencies) {
 	auth := app.Group("/auth")
 	auth.Post("/login", deps.AuthController.Login)
 
-	// Protected routes group (Admin JWT Auth required)
-	// For ease of assignment demo & flexibility, core public read endpoints are accessible, mutating endpoints are protected or available
+	// API routes
 	api := app.Group("")
 
 	// Requests

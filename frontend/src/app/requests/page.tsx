@@ -16,7 +16,6 @@ export default function RequestsPage() {
 
   // Create Request Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [persons, setPersons] = useState<NormalPerson[]>([]);
   const [locations, setLocations] = useState<DropOffLocation[]>([]);
 
   const [reqType, setReqType] = useState<RequestType>('Online');
@@ -40,7 +39,7 @@ export default function RequestsPage() {
 
   const openCreateModal = () => {
     setIsModalOpen(true);
-    Promise.all([locationsApi.getDropOffLocations()]).then(([locRes]) => {
+    locationsApi.getDropOffLocations().then((locRes) => {
       if (locRes.success && locRes.data) {
         setLocations(locRes.data);
         if (locRes.data.length > 0) setSelectedLocId(locRes.data[0].id);
@@ -54,7 +53,6 @@ export default function RequestsPage() {
 
     let personId = selectedPersonId;
     if (!personId) {
-      // Create quick person if not selected
       const personRes = await personsApi.createPerson({
         name: 'Citizen Requester',
         contactNumber: '+919800011122',
@@ -179,7 +177,7 @@ export default function RequestsPage() {
                           {req.dropOffLocation?.location?.address || 'Location Details'}
                         </p>
                         {req.dropOffLocation?.isSchoolOrHospital && (
-                          <span className="text-[10px] text-[#EB7D00] font-bold">🏥 School / Hospital</span>
+                          <span className="text-[10px] text-[#EB7D00] font-bold">[School / Hospital]</span>
                         )}
                       </td>
                       <td className="p-3 text-center">
@@ -224,9 +222,9 @@ export default function RequestsPage() {
 
         {/* Create Request Modal */}
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Water Supply Request">
-          <form onSubmit={handleCreateRequest} className="space-y-4 text-xs">
+          <form onSubmit={handleCreateRequest} className="space-y-5 text-xs">
             <div>
-              <label className="block font-bold text-[#2E2910] uppercase tracking-wider mb-1">
+              <label className="block font-bold text-[#2E2910] uppercase tracking-wider mb-2">
                 Request Ingestion Channel
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -235,37 +233,80 @@ export default function RequestsPage() {
                     type="button"
                     key={t}
                     onClick={() => setReqType(t)}
-                    className={`py-2 rounded border font-bold text-center transition-all ${
+                    className={`py-2.5 rounded-lg border font-bold text-center transition-all ${
                       reqType === t
-                        ? 'border-[#2C5745] bg-[#2C5745] text-white'
-                        : 'border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910]'
+                        ? 'border-[#2C5745] bg-[#2C5745] text-white shadow-md'
+                        : 'border-[#e2dab0] bg-[#f7f4d9] text-[#2E2910] hover:bg-white'
                     }`}
                   >
                     {t}
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-[#857c4c] mt-1">
-                Supports manual channels (Calls/Letters received by officials) & digital requests.
-              </p>
             </div>
 
+            {/* Interactive Location Selection Card Grid */}
             <div>
-              <label className="block font-bold text-[#2E2910] uppercase tracking-wider mb-1">
+              <label className="block font-bold text-[#2E2910] uppercase tracking-wider mb-2">
                 Select Drop-Off Destination Location
               </label>
-              <select
-                value={selectedLocId}
-                onChange={(e) => setSelectedLocId(e.target.value)}
-                className="w-full px-3 py-2 rounded border border-[#e2dab0] font-medium text-xs text-[#2E2910] focus:ring-2 focus:ring-[#2C5745] outline-none"
-                required
-              >
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.location?.address} {loc.isSchoolOrHospital ? '(School/Hospital)' : ''}
-                  </option>
-                ))}
-              </select>
+              {locations.length === 0 ? (
+                <div className="p-4 border border-dashed border-[#e2dab0] rounded-lg text-center text-xs text-[#857c4c]">
+                  Loading registered locations...
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {locations.map((loc) => {
+                    const isSelected = selectedLocId === loc.id;
+                    return (
+                      <div
+                        key={loc.id}
+                        onClick={() => setSelectedLocId(loc.id)}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                          isSelected
+                            ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745] shadow-sm'
+                            : 'border-[#e2dab0] bg-[#f7f4d9]/50 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="locationSelect"
+                            checked={isSelected}
+                            onChange={() => setSelectedLocId(loc.id)}
+                            className="mt-1 accent-[#2C5745]"
+                          />
+                          <div>
+                            <p className="font-bold text-[#2E2910] text-xs">
+                              {loc.location?.address}
+                            </p>
+                            {loc.location?.landmark && (
+                              <p className="text-[11px] text-[#2C5745] font-semibold mt-0.5">
+                                Landmark: {loc.location.landmark}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              {loc.isSchoolOrHospital && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded">
+                                  School / Hospital (+30)
+                                </span>
+                              )}
+                              {loc.hasPrivateBorewell && (
+                                <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">
+                                  Borewell (-30)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant={loc.trafficRisk.toLowerCase() as any}>
+                          {loc.trafficRisk} Risk ({loc.normalTravelTime}m)
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e2dab0]">
@@ -278,10 +319,10 @@ export default function RequestsPage() {
               </button>
               <button
                 type="submit"
-                disabled={creating}
-                className="px-5 py-2 bg-[#EB7D00] hover:bg-[#c96b00] text-white font-bold text-xs rounded shadow transition-colors disabled:opacity-50"
+                disabled={creating || !selectedLocId}
+                className="px-5 py-2.5 bg-[#EB7D00] hover:bg-[#c96b00] text-white font-bold text-xs rounded-lg shadow transition-colors disabled:opacity-50"
               >
-                {creating ? 'Creating...' : 'Submit Request'}
+                {creating ? 'Creating...' : 'Submit Water Request'}
               </button>
             </div>
           </form>

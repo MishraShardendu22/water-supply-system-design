@@ -103,6 +103,19 @@ func (r *AdminRepository) UpdateAdmin(ctx context.Context, admin *models.Adminis
 	return nil
 }
 
+func (r *AdminRepository) UpdateAdminPasswordHash(ctx context.Context, id string, passwordHash string) error {
+	query := `
+		UPDATE administrations
+		SET password_hash = $1
+		WHERE id = $2
+	`
+	_, err := r.db.ExecContext(ctx, query, passwordHash, id)
+	if err != nil {
+		return fmt.Errorf("failed to update admin password hash: %w", err)
+	}
+	return nil
+}
+
 func (r *AdminRepository) CountAdmins(ctx context.Context) (int, error) {
 	query := `SELECT COUNT(*) FROM administrations`
 	var count int

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
@@ -9,45 +9,57 @@ import { UserRole } from '../../lib/types';
 interface NavItem {
   label: string;
   href: string;
-  icon: string;
-  roles?: UserRole[];
+  roles: UserRole[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Admin Dashboard', href: '/dashboard', icon: '📊' },
-  { label: 'Requests Queue', href: '/requests', icon: '🚰' },
-  { label: 'Driver Operations', href: '/driver-dashboard', icon: '🚛' },
-  { label: 'District Manager Area', href: '/district-manager-dashboard', icon: '🏙️' },
-  { label: 'Drivers', href: '/drivers', icon: '👨‍✈️' },
-  { label: 'Vehicles', href: '/vehicles', icon: '🚚' },
-  { label: 'Filling Stations', href: '/filling-stations', icon: '⛽' },
-  { label: 'Drop-Off Locations', href: '/locations', icon: '📍' },
-  { label: 'District Managers', href: '/district-managers', icon: '👔' },
-  { label: 'Administration', href: '/admins', icon: '🛡️' },
+  { label: 'Admin Dashboard', href: '/dashboard', roles: ['Admin'] },
+  { label: 'Requests Queue', href: '/requests', roles: ['Admin', 'DistrictManager'] },
+  { label: 'Driver Operations', href: '/driver-dashboard', roles: ['Driver'] },
+  { label: 'District Manager Area', href: '/district-manager-dashboard', roles: ['DistrictManager'] },
+  { label: 'Drivers', href: '/drivers', roles: ['Admin'] },
+  { label: 'Vehicles', href: '/vehicles', roles: ['Admin'] },
+  { label: 'Filling Stations', href: '/filling-stations', roles: ['Admin'] },
+  { label: 'Drop-Off Locations', href: '/locations', roles: ['Admin'] },
+  { label: 'District Managers', href: '/district-managers', roles: ['Admin'] },
+  { label: 'Administration', href: '/admins', roles: ['Admin'] },
 ];
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { userRole, userName, isAuthenticated, setUserRole, logout } = useAuth();
+  const { userRole, userName, isAuthenticated, isLoaded, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = e.target.value as UserRole;
-    setUserRole(newRole);
-    if (newRole === 'Driver') {
-      router.push('/driver-dashboard');
-    } else if (newRole === 'DistrictManager') {
-      router.push('/district-manager-dashboard');
-    } else {
-      router.push('/dashboard');
+  // Strict Role Route Guard
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isAuthenticated && pathname !== '/login') {
+      router.push('/login');
+      return;
     }
-  };
+
+    if (isAuthenticated) {
+      if (userRole === 'Driver' && pathname !== '/driver-dashboard') {
+        router.push('/driver-dashboard');
+      } else if (
+        userRole === 'DistrictManager' &&
+        pathname !== '/district-manager-dashboard' &&
+        !pathname.startsWith('/requests')
+      ) {
+        router.push('/district-manager-dashboard');
+      }
+    }
+  }, [isAuthenticated, isLoaded, userRole, pathname, router]);
 
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
+
+  // Filter navigation links strictly for the user's role
+  const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
 
   return (
     <div className="min-h-screen flex bg-[#f9f8f0] text-[#2E2910]">
@@ -55,8 +67,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <aside className="hidden lg:flex flex-col w-64 bg-[#2C5745] text-white border-r border-[#1e3d30]">
         <div className="p-5 border-b border-[#3d725c]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#EB7D00] flex items-center justify-center text-xl font-bold text-white shadow">
-              💧
+            <div className="w-10 h-10 rounded-lg bg-[#EB7D00] flex items-center justify-center text-xl font-black text-white shadow">
+              W
             </div>
             <div>
               <h1 className="font-bold text-base tracking-wide text-[#EBE3A7]">MUNI WATER</h1>
@@ -66,40 +78,31 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   isActive
                     ? 'bg-[#EB7D00] text-white shadow'
                     : 'text-[#EBE3A7] hover:bg-[#3d725c] hover:text-white'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Role Simulation Switcher Footer */}
         <div className="p-4 border-t border-[#3d725c] bg-[#1e3d30]/60">
-          <label className="block text-[10px] uppercase font-bold text-[#EBE3A7] tracking-wider mb-1">
-            Simulate Active User Role
-          </label>
-          <select
-            value={userRole}
-            onChange={handleRoleChange}
-            className="w-full text-xs font-semibold px-2.5 py-2 rounded bg-[#2C5745] text-white border border-[#3d725c] focus:ring-2 focus:ring-[#EB7D00] outline-none"
-          >
-            <option value="Admin">Admin / Operator</option>
-            <option value="Driver">Tanker Driver</option>
-            <option value="DistrictManager">District Manager</option>
-          </select>
+          <p className="text-[11px] font-semibold text-[#EBE3A7]">Logged in as:</p>
+          <p className="text-xs font-bold text-white truncate">{userName || 'User'}</p>
+          <span className="inline-block mt-1 px-2 py-0.5 bg-[#EB7D00] text-white text-[10px] font-bold rounded">
+            {userRole}
+          </span>
         </div>
       </aside>
 
@@ -110,14 +113,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-md bg-[#f4f1db] text-[#2C5745] font-bold text-xl"
+              className="lg:hidden px-3 py-1 rounded bg-[#f4f1db] text-[#2C5745] font-bold text-sm"
               aria-label="Toggle menu"
             >
-              ☰
+              MENU
             </button>
             <div>
               <h2 className="text-lg font-bold text-[#2E2910]">
-                Water Tanker Operations Control
+                Water Supply Operations Control
               </h2>
               <p className="text-xs text-[#857c4c]">Municipal Distribution & Dispatch Platform</p>
             </div>
@@ -126,7 +129,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div className="flex items-center gap-4">
             {/* Role Badge */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#f7f4d9] border border-[#dcd499] rounded-full text-xs font-bold text-[#2E2910]">
-              <span className="w-2 h-2 rounded-full bg-[#EB7D00] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#EB7D00]" />
               <span>Role: {userRole}</span>
             </div>
 
@@ -163,14 +166,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-[#2C5745] text-white p-4 space-y-2 border-b border-[#1e3d30]">
-            {NAV_ITEMS.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-semibold text-[#EBE3A7] hover:bg-[#3d725c]"
+                className="block px-3 py-2 rounded-md text-sm font-semibold text-[#EBE3A7] hover:bg-[#3d725c]"
               >
-                <span>{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             ))}

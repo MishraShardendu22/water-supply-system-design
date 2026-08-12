@@ -37,12 +37,14 @@ func (r *RequestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 			r.status, r.priority_score, r.otp_hash, r.otp_expires_at, r.created_at, r.dispatched_at, r.completed_at,
 			p.id, p.name, p.contact_number, p.address,
 			d.id, d.has_private_borewell, d.traffic_risk, d.normal_travel_time, d.is_school_or_hospital,
+			l.id, l.address, l.latitude, l.longitude, l.landmark, l.created_at,
 			fs.id, fs.name, fs.current_truck_count,
 			drv.id, drv.name, drv.contact_number, drv.phone_type, drv.total_rating, drv.total_deliveries, drv.status,
 			veh.id, veh.type, veh.capacity, veh.status
 		FROM requests r
 		JOIN normal_persons p ON r.requester_id = p.id
 		JOIN drop_off_locations d ON r.drop_off_location_id = d.id
+		LEFT JOIN locations l ON d.id = l.id
 		LEFT JOIN filling_stations fs ON r.filling_station_id = fs.id
 		LEFT JOIN drivers drv ON r.driver_id = drv.id
 		LEFT JOIN vehicles veh ON r.vehicle_id = veh.id
@@ -53,6 +55,10 @@ func (r *RequestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 	var req models.Request
 	var p models.NormalPerson
 	var d models.DropOffLocation
+
+	var locID, locAddress, locLandmark sql.NullString
+	var locLat, locLng sql.NullFloat64
+	var locCreatedAt sql.NullTime
 
 	var fsID, fsName sql.NullString
 	var fsTruckCount sql.NullInt64
@@ -72,6 +78,7 @@ func (r *RequestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 		&req.Status, &req.PriorityScore, &otpHash, &otpExpiresAt, &req.CreatedAt, &dispatchedAt, &completedAt,
 		&p.ID, &p.Name, &p.ContactNumber, &p.Address,
 		&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital,
+		&locID, &locAddress, &locLat, &locLng, &locLandmark, &locCreatedAt,
 		&fsID, &fsName, &fsTruckCount,
 		&drvID, &drvName, &drvContact, &drvPhoneType, &drvRating, &drvDeliveries, &drvStatus,
 		&vehID, &vehType, &vehCapacity, &vehStatus,
@@ -85,6 +92,20 @@ func (r *RequestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 
 	req.Requester = &p
 	req.DropOffLocation = &d
+
+	if locID.Valid {
+		l := &models.Location{
+			ID:        locID.String,
+			Address:   locAddress.String,
+			Latitude:  locLat.Float64,
+			Longitude: locLng.Float64,
+			CreatedAt: locCreatedAt.Time,
+		}
+		if locLandmark.Valid {
+			l.Landmark = &locLandmark.String
+		}
+		d.Location = l
+	}
 
 	if otpHash.Valid {
 		req.OTPHash = &otpHash.String
@@ -135,15 +156,29 @@ func (r *RequestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 
 func (r *RequestRepository) ListRequests(ctx context.Context, statusFilter string) ([]*models.Request, error) {
 	query := `
-		SELECT id, request_type, requester_id, drop_off_location_id, filling_station_id, driver_id, vehicle_id, status, priority_score, created_at, dispatched_at, completed_at
-		FROM requests
+		SELECT 
+			r.id, r.request_type, r.requester_id, r.drop_off_location_id, r.filling_station_id, r.driver_id, r.vehicle_id,
+			r.status, r.priority_score, r.otp_hash, r.otp_expires_at, r.created_at, r.dispatched_at, r.completed_at,
+			p.id, p.name, p.contact_number, p.address,
+			d.id, d.has_private_borewell, d.traffic_risk, d.normal_travel_time, d.is_school_or_hospital,
+			l.id, l.address, l.latitude, l.longitude, l.landmark, l.created_at,
+			fs.id, fs.name, fs.current_truck_count,
+			drv.id, drv.name, drv.contact_number, drv.phone_type, drv.total_rating, drv.total_deliveries, drv.status,
+			veh.id, veh.type, veh.capacity, veh.status
+		FROM requests r
+		JOIN normal_persons p ON r.requester_id = p.id
+		JOIN drop_off_locations d ON r.drop_off_location_id = d.id
+		LEFT JOIN locations l ON d.id = l.id
+		LEFT JOIN filling_stations fs ON r.filling_station_id = fs.id
+		LEFT JOIN drivers drv ON r.driver_id = drv.id
+		LEFT JOIN vehicles veh ON r.vehicle_id = veh.id
 	`
 	var args []interface{}
 	if statusFilter != "" {
-		query += ` WHERE status = $1`
+		query += ` WHERE r.status = $1`
 		args = append(args, statusFilter)
 	}
-	query += ` ORDER BY priority_score DESC, created_at ASC`
+	query += ` ORDER BY r.priority_score DESC, r.created_at ASC`
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -154,12 +189,61 @@ func (r *RequestRepository) ListRequests(ctx context.Context, statusFilter strin
 	var list []*models.Request
 	for rows.Next() {
 		var req models.Request
-		var dispatchedAt, completedAt sql.NullTime
+		var p models.NormalPerson
+		var d models.DropOffLocation
+
+		var locID, locAddress, locLandmark sql.NullString
+		var locLat, locLng sql.NullFloat64
+		var locCreatedAt sql.NullTime
+
+		var fsID, fsName sql.NullString
+		var fsTruckCount sql.NullInt64
+
+		var drvID, drvName, drvContact, drvPhoneType, drvStatus sql.NullString
+		var drvRating sql.NullFloat64
+		var drvDeliveries sql.NullInt64
+
+		var vehID, vehType, vehStatus sql.NullString
+		var vehCapacity sql.NullInt64
+
+		var otpHash sql.NullString
+		var otpExpiresAt, dispatchedAt, completedAt sql.NullTime
+
 		if err := rows.Scan(
 			&req.ID, &req.RequestType, &req.RequesterID, &req.DropOffLocationID, &req.FillingStationID, &req.DriverID, &req.VehicleID,
-			&req.Status, &req.PriorityScore, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&req.Status, &req.PriorityScore, &otpHash, &otpExpiresAt, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&p.ID, &p.Name, &p.ContactNumber, &p.Address,
+			&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital,
+			&locID, &locAddress, &locLat, &locLng, &locLandmark, &locCreatedAt,
+			&fsID, &fsName, &fsTruckCount,
+			&drvID, &drvName, &drvContact, &drvPhoneType, &drvRating, &drvDeliveries, &drvStatus,
+			&vehID, &vehType, &vehCapacity, &vehStatus,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan request row: %w", err)
+		}
+
+		req.Requester = &p
+		req.DropOffLocation = &d
+
+		if locID.Valid {
+			l := &models.Location{
+				ID:        locID.String,
+				Address:   locAddress.String,
+				Latitude:  locLat.Float64,
+				Longitude: locLng.Float64,
+				CreatedAt: locCreatedAt.Time,
+			}
+			if locLandmark.Valid {
+				l.Landmark = &locLandmark.String
+			}
+			d.Location = l
+		}
+
+		if otpHash.Valid {
+			req.OTPHash = &otpHash.String
+		}
+		if otpExpiresAt.Valid {
+			req.OTPExpiresAt = &otpExpiresAt.Time
 		}
 		if dispatchedAt.Valid {
 			req.DispatchedAt = &dispatchedAt.Time
@@ -167,6 +251,38 @@ func (r *RequestRepository) ListRequests(ctx context.Context, statusFilter strin
 		if completedAt.Valid {
 			req.CompletedAt = &completedAt.Time
 		}
+
+		if fsID.Valid {
+			cnt := int(fsTruckCount.Int64)
+			req.FillingStation = &models.FillingStation{
+				ID:                fsID.String,
+				Name:              fsName.String,
+				CurrentTruckCount: cnt,
+				Availability:      calculateAvailability(cnt),
+			}
+		}
+
+		if drvID.Valid {
+			req.Driver = &models.Driver{
+				ID:              drvID.String,
+				Name:            drvName.String,
+				ContactNumber:   drvContact.String,
+				PhoneType:       drvPhoneType.String,
+				TotalRating:     drvRating.Float64,
+				TotalDeliveries: int(drvDeliveries.Int64),
+				Status:          drvStatus.String,
+			}
+		}
+
+		if vehID.Valid {
+			req.Vehicle = &models.Vehicle{
+				ID:       vehID.String,
+				Type:     vehType.String,
+				Capacity: int(vehCapacity.Int64),
+				Status:   vehStatus.String,
+			}
+		}
+
 		list = append(list, &req)
 	}
 	return list, nil
@@ -174,10 +290,24 @@ func (r *RequestRepository) ListRequests(ctx context.Context, statusFilter strin
 
 func (r *RequestRepository) GetRequestsByDriverID(ctx context.Context, driverID string) ([]*models.Request, error) {
 	query := `
-		SELECT id, request_type, requester_id, drop_off_location_id, filling_station_id, driver_id, vehicle_id, status, priority_score, created_at, dispatched_at, completed_at
-		FROM requests
-		WHERE driver_id = $1
-		ORDER BY created_at DESC
+		SELECT 
+			r.id, r.request_type, r.requester_id, r.drop_off_location_id, r.filling_station_id, r.driver_id, r.vehicle_id,
+			r.status, r.priority_score, r.otp_hash, r.otp_expires_at, r.created_at, r.dispatched_at, r.completed_at,
+			p.id, p.name, p.contact_number, p.address,
+			d.id, d.has_private_borewell, d.traffic_risk, d.normal_travel_time, d.is_school_or_hospital,
+			l.id, l.address, l.latitude, l.longitude, l.landmark, l.created_at,
+			fs.id, fs.name, fs.current_truck_count,
+			drv.id, drv.name, drv.contact_number, drv.phone_type, drv.total_rating, drv.total_deliveries, drv.status,
+			veh.id, veh.type, veh.capacity, veh.status
+		FROM requests r
+		JOIN normal_persons p ON r.requester_id = p.id
+		JOIN drop_off_locations d ON r.drop_off_location_id = d.id
+		LEFT JOIN locations l ON d.id = l.id
+		LEFT JOIN filling_stations fs ON r.filling_station_id = fs.id
+		LEFT JOIN drivers drv ON r.driver_id = drv.id
+		LEFT JOIN vehicles veh ON r.vehicle_id = veh.id
+		WHERE r.driver_id = $1
+		ORDER BY r.created_at DESC
 	`
 	rows, err := r.db.QueryContext(ctx, query, driverID)
 	if err != nil {
@@ -188,12 +318,61 @@ func (r *RequestRepository) GetRequestsByDriverID(ctx context.Context, driverID 
 	var list []*models.Request
 	for rows.Next() {
 		var req models.Request
-		var dispatchedAt, completedAt sql.NullTime
+		var p models.NormalPerson
+		var d models.DropOffLocation
+
+		var locID, locAddress, locLandmark sql.NullString
+		var locLat, locLng sql.NullFloat64
+		var locCreatedAt sql.NullTime
+
+		var fsID, fsName sql.NullString
+		var fsTruckCount sql.NullInt64
+
+		var drvID, drvName, drvContact, drvPhoneType, drvStatus sql.NullString
+		var drvRating sql.NullFloat64
+		var drvDeliveries sql.NullInt64
+
+		var vehID, vehType, vehStatus sql.NullString
+		var vehCapacity sql.NullInt64
+
+		var otpHash sql.NullString
+		var otpExpiresAt, dispatchedAt, completedAt sql.NullTime
+
 		if err := rows.Scan(
 			&req.ID, &req.RequestType, &req.RequesterID, &req.DropOffLocationID, &req.FillingStationID, &req.DriverID, &req.VehicleID,
-			&req.Status, &req.PriorityScore, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&req.Status, &req.PriorityScore, &otpHash, &otpExpiresAt, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&p.ID, &p.Name, &p.ContactNumber, &p.Address,
+			&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital,
+			&locID, &locAddress, &locLat, &locLng, &locLandmark, &locCreatedAt,
+			&fsID, &fsName, &fsTruckCount,
+			&drvID, &drvName, &drvContact, &drvPhoneType, &drvRating, &drvDeliveries, &drvStatus,
+			&vehID, &vehType, &vehCapacity, &vehStatus,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan driver request row: %w", err)
+		}
+
+		req.Requester = &p
+		req.DropOffLocation = &d
+
+		if locID.Valid {
+			l := &models.Location{
+				ID:        locID.String,
+				Address:   locAddress.String,
+				Latitude:  locLat.Float64,
+				Longitude: locLng.Float64,
+				CreatedAt: locCreatedAt.Time,
+			}
+			if locLandmark.Valid {
+				l.Landmark = &locLandmark.String
+			}
+			d.Location = l
+		}
+
+		if otpHash.Valid {
+			req.OTPHash = &otpHash.String
+		}
+		if otpExpiresAt.Valid {
+			req.OTPExpiresAt = &otpExpiresAt.Time
 		}
 		if dispatchedAt.Valid {
 			req.DispatchedAt = &dispatchedAt.Time
@@ -201,6 +380,38 @@ func (r *RequestRepository) GetRequestsByDriverID(ctx context.Context, driverID 
 		if completedAt.Valid {
 			req.CompletedAt = &completedAt.Time
 		}
+
+		if fsID.Valid {
+			cnt := int(fsTruckCount.Int64)
+			req.FillingStation = &models.FillingStation{
+				ID:                fsID.String,
+				Name:              fsName.String,
+				CurrentTruckCount: cnt,
+				Availability:      calculateAvailability(cnt),
+			}
+		}
+
+		if drvID.Valid {
+			req.Driver = &models.Driver{
+				ID:              drvID.String,
+				Name:            drvName.String,
+				ContactNumber:   drvContact.String,
+				PhoneType:       drvPhoneType.String,
+				TotalRating:     drvRating.Float64,
+				TotalDeliveries: int(drvDeliveries.Int64),
+				Status:          drvStatus.String,
+			}
+		}
+
+		if vehID.Valid {
+			req.Vehicle = &models.Vehicle{
+				ID:       vehID.String,
+				Type:     vehType.String,
+				Capacity: int(vehCapacity.Int64),
+				Status:   vehStatus.String,
+			}
+		}
+
 		list = append(list, &req)
 	}
 	return list, nil
@@ -208,10 +419,24 @@ func (r *RequestRepository) GetRequestsByDriverID(ctx context.Context, driverID 
 
 func (r *RequestRepository) GetRequestsByDropOffLocationID(ctx context.Context, locationID string) ([]*models.Request, error) {
 	query := `
-		SELECT id, request_type, requester_id, drop_off_location_id, filling_station_id, driver_id, vehicle_id, status, priority_score, created_at, dispatched_at, completed_at
-		FROM requests
-		WHERE drop_off_location_id = $1
-		ORDER BY created_at DESC
+		SELECT 
+			r.id, r.request_type, r.requester_id, r.drop_off_location_id, r.filling_station_id, r.driver_id, r.vehicle_id,
+			r.status, r.priority_score, r.otp_hash, r.otp_expires_at, r.created_at, r.dispatched_at, r.completed_at,
+			p.id, p.name, p.contact_number, p.address,
+			d.id, d.has_private_borewell, d.traffic_risk, d.normal_travel_time, d.is_school_or_hospital,
+			l.id, l.address, l.latitude, l.longitude, l.landmark, l.created_at,
+			fs.id, fs.name, fs.current_truck_count,
+			drv.id, drv.name, drv.contact_number, drv.phone_type, drv.total_rating, drv.total_deliveries, drv.status,
+			veh.id, veh.type, veh.capacity, veh.status
+		FROM requests r
+		JOIN normal_persons p ON r.requester_id = p.id
+		JOIN drop_off_locations d ON r.drop_off_location_id = d.id
+		LEFT JOIN locations l ON d.id = l.id
+		LEFT JOIN filling_stations fs ON r.filling_station_id = fs.id
+		LEFT JOIN drivers drv ON r.driver_id = drv.id
+		LEFT JOIN vehicles veh ON r.vehicle_id = veh.id
+		WHERE r.drop_off_location_id = $1
+		ORDER BY r.created_at DESC
 	`
 	rows, err := r.db.QueryContext(ctx, query, locationID)
 	if err != nil {
@@ -222,12 +447,61 @@ func (r *RequestRepository) GetRequestsByDropOffLocationID(ctx context.Context, 
 	var list []*models.Request
 	for rows.Next() {
 		var req models.Request
-		var dispatchedAt, completedAt sql.NullTime
+		var p models.NormalPerson
+		var d models.DropOffLocation
+
+		var locID, locAddress, locLandmark sql.NullString
+		var locLat, locLng sql.NullFloat64
+		var locCreatedAt sql.NullTime
+
+		var fsID, fsName sql.NullString
+		var fsTruckCount sql.NullInt64
+
+		var drvID, drvName, drvContact, drvPhoneType, drvStatus sql.NullString
+		var drvRating sql.NullFloat64
+		var drvDeliveries sql.NullInt64
+
+		var vehID, vehType, vehStatus sql.NullString
+		var vehCapacity sql.NullInt64
+
+		var otpHash sql.NullString
+		var otpExpiresAt, dispatchedAt, completedAt sql.NullTime
+
 		if err := rows.Scan(
 			&req.ID, &req.RequestType, &req.RequesterID, &req.DropOffLocationID, &req.FillingStationID, &req.DriverID, &req.VehicleID,
-			&req.Status, &req.PriorityScore, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&req.Status, &req.PriorityScore, &otpHash, &otpExpiresAt, &req.CreatedAt, &dispatchedAt, &completedAt,
+			&p.ID, &p.Name, &p.ContactNumber, &p.Address,
+			&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital,
+			&locID, &locAddress, &locLat, &locLng, &locLandmark, &locCreatedAt,
+			&fsID, &fsName, &fsTruckCount,
+			&drvID, &drvName, &drvContact, &drvPhoneType, &drvRating, &drvDeliveries, &drvStatus,
+			&vehID, &vehType, &vehCapacity, &vehStatus,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan location request row: %w", err)
+		}
+
+		req.Requester = &p
+		req.DropOffLocation = &d
+
+		if locID.Valid {
+			l := &models.Location{
+				ID:        locID.String,
+				Address:   locAddress.String,
+				Latitude:  locLat.Float64,
+				Longitude: locLng.Float64,
+				CreatedAt: locCreatedAt.Time,
+			}
+			if locLandmark.Valid {
+				l.Landmark = &locLandmark.String
+			}
+			d.Location = l
+		}
+
+		if otpHash.Valid {
+			req.OTPHash = &otpHash.String
+		}
+		if otpExpiresAt.Valid {
+			req.OTPExpiresAt = &otpExpiresAt.Time
 		}
 		if dispatchedAt.Valid {
 			req.DispatchedAt = &dispatchedAt.Time
@@ -235,6 +509,38 @@ func (r *RequestRepository) GetRequestsByDropOffLocationID(ctx context.Context, 
 		if completedAt.Valid {
 			req.CompletedAt = &completedAt.Time
 		}
+
+		if fsID.Valid {
+			cnt := int(fsTruckCount.Int64)
+			req.FillingStation = &models.FillingStation{
+				ID:                fsID.String,
+				Name:              fsName.String,
+				CurrentTruckCount: cnt,
+				Availability:      calculateAvailability(cnt),
+			}
+		}
+
+		if drvID.Valid {
+			req.Driver = &models.Driver{
+				ID:              drvID.String,
+				Name:            drvName.String,
+				ContactNumber:   drvContact.String,
+				PhoneType:       drvPhoneType.String,
+				TotalRating:     drvRating.Float64,
+				TotalDeliveries: int(drvDeliveries.Int64),
+				Status:          drvStatus.String,
+			}
+		}
+
+		if vehID.Valid {
+			req.Vehicle = &models.Vehicle{
+				ID:       vehID.String,
+				Type:     vehType.String,
+				Capacity: int(vehCapacity.Int64),
+				Status:   vehStatus.String,
+			}
+		}
+
 		list = append(list, &req)
 	}
 	return list, nil
