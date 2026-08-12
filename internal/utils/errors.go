@@ -3,16 +3,16 @@ package utils
 import "errors"
 
 var (
-	ErrNotFound          = errors.New("resource not found")
-	ErrUnauthorized      = errors.New("unauthorized access")
-	ErrForbidden         = errors.New("forbidden")
-	ErrBadRequest         = errors.New("bad request")
-	ErrConflict          = errors.New("resource conflict")
-	ErrInvalidState      = errors.New("invalid request state for this action")
-	ErrResourceBusy      = errors.New("resource is busy or unavailable")
-	ErrOTPExpired        = errors.New("otp has expired")
-	ErrOTPInvalid        = errors.New("invalid otp provided")
-	ErrInternalServer    = errors.New("internal server error")
+	ErrNotFound       = errors.New("resource not found")
+	ErrUnauthorized   = errors.New("unauthorized access")
+	ErrForbidden      = errors.New("forbidden")
+	ErrBadRequest     = errors.New("bad request")
+	ErrConflict       = errors.New("resource conflict")
+	ErrInvalidState   = errors.New("invalid request state for this action")
+	ErrResourceBusy   = errors.New("resource is busy or unavailable")
+	ErrOTPExpired     = errors.New("otp has expired")
+	ErrOTPInvalid     = errors.New("invalid otp provided")
+	ErrInternalServer = errors.New("internal server error")
 )
 
 type AppError struct {

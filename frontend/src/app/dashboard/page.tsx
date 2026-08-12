@@ -127,42 +127,50 @@ export default function AdminDashboardPage() {
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#2E2910] mb-3">
               Filling Station Congestion Queue
             </h3>
-            <div className="space-y-3">
-              {stations.map((st) => (
-                <div key={st.id} className="p-3 bg-[#f7f4d9] rounded-lg border border-[#dcd499]">
-                  <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                    <span className="text-[#2E2910]">{st.name}</span>
-                    <Badge
-                      variant={
-                        st.availability === 'AVAILABLE'
-                          ? 'available'
-                          : st.availability === 'BUSY'
-                          ? 'busy'
-                          : 'very_busy'
-                      }
-                    >
-                      {st.availability.replace('_', ' ')}
-                    </Badge>
+            {loading ? (
+              <div className="py-8 text-center text-xs text-[#857c4c]">Loading station data...</div>
+            ) : stations.length === 0 ? (
+              <div className="p-6 bg-[#f7f4d9] rounded-lg border border-dashed border-[#dcd499] text-center text-xs text-[#857c4c]">
+                No filling stations registered in the system yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {stations.map((st) => (
+                  <div key={st.id} className="p-3 bg-[#f7f4d9] rounded-lg border border-[#dcd499]">
+                    <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                      <span className="text-[#2E2910]">{st.name}</span>
+                      <Badge
+                        variant={
+                          st.availability === 'AVAILABLE'
+                            ? 'available'
+                            : st.availability === 'BUSY'
+                            ? 'busy'
+                            : 'very_busy'
+                        }
+                      >
+                        {st.availability.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-[#58512b] mb-1">
+                      <span>Queued Trucks: {st.currentTruckCount}</span>
+                      <span>Wait: ~{st.currentTruckCount * 10} mins</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${
+                          st.currentTruckCount <= 2
+                            ? 'bg-emerald-600'
+                            : st.currentTruckCount <= 5
+                            ? 'bg-amber-500'
+                            : 'bg-orange-600'
+                        }`}
+                        style={{ width: `${Math.min(100, (st.currentTruckCount / 10) * 100)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#58512b] mb-1">
-                    <span>Queued Trucks: {st.currentTruckCount}</span>
-                    <span>Wait: ~{st.currentTruckCount * 10} mins</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all ${
-                        st.currentTruckCount <= 2
-                          ? 'bg-emerald-600'
-                          : st.currentTruckCount <= 5
-                          ? 'bg-amber-500'
-                          : 'bg-orange-600'
-                      }`}
-                      style={{ width: `${Math.min(100, (st.currentTruckCount / 10) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Main Operational Request Queue Table */}
@@ -186,7 +194,16 @@ export default function AdminDashboardPage() {
               {loading ? (
                 <div className="py-12 text-center text-xs text-[#857c4c]">Loading requests...</div>
               ) : requests.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#857c4c]">No active requests found.</div>
+                <div className="p-8 border border-dashed border-[#e2dab0] rounded-lg text-center text-xs text-[#857c4c]">
+                  <p className="font-bold text-[#2E2910] text-sm mb-1">No Active Requests</p>
+                  <p>There are currently no water supply requests in the database.</p>
+                  <Link
+                    href="/requests"
+                    className="inline-block mt-3 px-3 py-1.5 bg-[#2C5745] text-white font-bold text-xs rounded"
+                  >
+                    + Create First Request
+                  </Link>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">

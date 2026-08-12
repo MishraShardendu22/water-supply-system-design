@@ -64,7 +64,7 @@ type LoginInput struct {
 }
 
 type LoginResponse struct {
-	Token string                `json:"token"`
+	Token string                 `json:"token"`
 	Admin *models.Administration `json:"admin"`
 }
 

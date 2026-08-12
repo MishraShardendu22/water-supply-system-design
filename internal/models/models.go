@@ -11,7 +11,7 @@ const (
 	RequestStatusAssigned   = "ASSIGNED"
 	RequestStatusDispatched = "DISPATCHED"
 	RequestStatusCompleted  = "COMPLETED"
-	RequestStatusCancelled = "CANCELLED"
+	RequestStatusCancelled  = "CANCELLED"
 )
 
 // Request Type Constants
@@ -72,13 +72,13 @@ type Location struct {
 }
 
 type DropOffLocation struct {
-	ID                  string    `json:"id"`
-	HasPrivateBorewell  bool      `json:"hasPrivateBorewell"`
-	TrafficRisk         string    `json:"trafficRisk"`
-	NormalTravelTime    int       `json:"normalTravelTime"` // in minutes
-	IsSchoolOrHospital  bool      `json:"isSchoolOrHospital"`
-	CreatedAt           time.Time `json:"createdAt"`
-	Location            *Location `json:"location,omitempty"`
+	ID                 string    `json:"id"`
+	HasPrivateBorewell bool      `json:"hasPrivateBorewell"`
+	TrafficRisk        string    `json:"trafficRisk"`
+	NormalTravelTime   int       `json:"normalTravelTime"` // in minutes
+	IsSchoolOrHospital bool      `json:"isSchoolOrHospital"`
+	CreatedAt          time.Time `json:"createdAt"`
+	Location           *Location `json:"location,omitempty"`
 }
 
 type NormalPerson struct {
@@ -152,25 +152,25 @@ type FillingStation struct {
 }
 
 type Request struct {
-	ID                 string           `json:"id"`
-	RequestType        string           `json:"requestType"`
-	RequesterID        string           `json:"requesterId"`
-	DropOffLocationID  string           `json:"dropOffLocationId"`
-	FillingStationID   *string          `json:"fillingStationId,omitempty"`
-	DriverID           *string          `json:"driverId,omitempty"`
-	VehicleID          *string          `json:"vehicleId,omitempty"`
-	Status             string           `json:"status"`
-	PriorityScore      float64          `json:"priorityScore"`
-	OTPHash            *string          `json:"-"`
-	OTPExpiresAt       *time.Time       `json:"otpExpiresAt,omitempty"`
-	CreatedAt          time.Time        `json:"createdAt"`
-	DispatchedAt       *time.Time       `json:"dispatchedAt,omitempty"`
-	CompletedAt        *time.Time       `json:"completedAt,omitempty"`
-	Requester          *NormalPerson    `json:"requester,omitempty"`
-	DropOffLocation    *DropOffLocation `json:"dropOffLocation,omitempty"`
-	FillingStation     *FillingStation  `json:"fillingStation,omitempty"`
-	Driver             *Driver          `json:"driver,omitempty"`
-	Vehicle            *Vehicle         `json:"vehicle,omitempty"`
+	ID                string           `json:"id"`
+	RequestType       string           `json:"requestType"`
+	RequesterID       string           `json:"requesterId"`
+	DropOffLocationID string           `json:"dropOffLocationId"`
+	FillingStationID  *string          `json:"fillingStationId,omitempty"`
+	DriverID          *string          `json:"driverId,omitempty"`
+	VehicleID         *string          `json:"vehicleId,omitempty"`
+	Status            string           `json:"status"`
+	PriorityScore     float64          `json:"priorityScore"`
+	OTPHash           *string          `json:"-"`
+	OTPExpiresAt      *time.Time       `json:"otpExpiresAt,omitempty"`
+	CreatedAt         time.Time        `json:"createdAt"`
+	DispatchedAt      *time.Time       `json:"dispatchedAt,omitempty"`
+	CompletedAt       *time.Time       `json:"completedAt,omitempty"`
+	Requester         *NormalPerson    `json:"requester,omitempty"`
+	DropOffLocation   *DropOffLocation `json:"dropOffLocation,omitempty"`
+	FillingStation    *FillingStation  `json:"fillingStation,omitempty"`
+	Driver            *Driver          `json:"driver,omitempty"`
+	Vehicle           *Vehicle         `json:"vehicle,omitempty"`
 }
 
 type PriorityCalculationResult struct {

@@ -9,16 +9,16 @@ import (
 )
 
 type RouterDependencies struct {
-	Config                *config.Config
-	AuthController        *controllers.AuthController
-	AdminController       *controllers.AdminController
-	DriverController      *controllers.DriverController
-	VehicleController     *controllers.VehicleController
-	FillingStationController *controllers.FillingStationController
+	Config                    *config.Config
+	AuthController            *controllers.AuthController
+	AdminController           *controllers.AdminController
+	DriverController          *controllers.DriverController
+	VehicleController         *controllers.VehicleController
+	FillingStationController  *controllers.FillingStationController
 	DropOffLocationController *controllers.DropOffLocationController
-	PersonController      *controllers.PersonController
+	PersonController          *controllers.PersonController
 	DistrictManagerController *controllers.DistrictManagerController
-	RequestController     *controllers.RequestController
+	RequestController         *controllers.RequestController
 }
 
 func SetupRoutes(app *fiber.App, deps *RouterDependencies) {

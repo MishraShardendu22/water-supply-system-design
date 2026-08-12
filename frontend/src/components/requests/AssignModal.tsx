@@ -83,51 +83,57 @@ export const AssignModal: React.FC<AssignModalProps> = ({
             <label className="block text-xs font-bold text-[#2E2910] uppercase tracking-wider mb-2">
               1. Select Driver (Locality Familiarity Recommendation)
             </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {recommendations.map((item, idx) => (
-                <div
-                  key={item.driver.id}
-                  onClick={() => setSelectedDriverId(item.driver.id)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
-                    selectedDriverId === item.driver.id
-                      ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                      : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="driver"
-                      checked={selectedDriverId === item.driver.id}
-                      onChange={() => setSelectedDriverId(item.driver.id)}
-                      className="mt-1 accent-[#2C5745]"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#2E2910] text-sm">{item.driver.name}</span>
-                        {idx === 0 && (
-                          <span className="text-[10px] bg-[#EB7D00] text-white px-2 py-0.5 rounded font-bold uppercase">
-                            Top Match
-                          </span>
-                        )}
-                        <span className="text-xs text-[#58512b]">({item.driver.phoneType} Phone)</span>
-                      </div>
-                      <p className="text-xs text-[#2C5745] font-semibold mt-0.5">
-                        {item.recommendationReason}
-                      </p>
-                      <div className="flex items-center gap-3 text-[11px] text-[#857c4c] mt-1">
-                        <span>Total Deliveries: {item.driver.totalDeliveries}</span>
-                        <span>•</span>
-                        <span>Rating: ⭐ {item.driver.totalRating}</span>
+            {recommendations.length === 0 ? (
+              <div className="p-4 border border-dashed border-[#e2dab0] rounded-lg text-center text-xs text-[#857c4c]">
+                No available drivers registered in database.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {recommendations.map((item, idx) => (
+                  <div
+                    key={item.driver.id}
+                    onClick={() => setSelectedDriverId(item.driver.id)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
+                      selectedDriverId === item.driver.id
+                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
+                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="driver"
+                        checked={selectedDriverId === item.driver.id}
+                        onChange={() => setSelectedDriverId(item.driver.id)}
+                        className="mt-1 accent-[#2C5745]"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#2E2910] text-sm">{item.driver.name}</span>
+                          {idx === 0 && (
+                            <span className="text-[10px] bg-[#EB7D00] text-white px-2 py-0.5 rounded font-bold uppercase">
+                              Top Match
+                            </span>
+                          )}
+                          <span className="text-xs text-[#58512b]">({item.driver.phoneType} Phone)</span>
+                        </div>
+                        <p className="text-xs text-[#2C5745] font-semibold mt-0.5">
+                          {item.recommendationReason}
+                        </p>
+                        <div className="flex items-center gap-3 text-[11px] text-[#857c4c] mt-1">
+                          <span>Total Deliveries: {item.driver.totalDeliveries}</span>
+                          <span>•</span>
+                          <span>Rating: ⭐ {item.driver.totalRating}</span>
+                        </div>
                       </div>
                     </div>
+                    <Badge variant={item.driver.status === 'Available' ? 'available' : 'busy'}>
+                      {item.driver.status}
+                    </Badge>
                   </div>
-                  <Badge variant={item.driver.status === 'Available' ? 'available' : 'busy'}>
-                    {item.driver.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Vehicle Selection Section */}
@@ -135,36 +141,42 @@ export const AssignModal: React.FC<AssignModalProps> = ({
             <label className="block text-xs font-bold text-[#2E2910] uppercase tracking-wider mb-2">
               2. Select Available Water Tanker Vehicle
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {vehicles.map((v) => (
-                <div
-                  key={v.id}
-                  onClick={() => setSelectedVehicleId(v.id)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
-                    selectedVehicleId === v.id
-                      ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                      : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="vehicle"
-                      checked={selectedVehicleId === v.id}
-                      onChange={() => setSelectedVehicleId(v.id)}
-                      className="accent-[#2C5745]"
-                    />
-                    <div>
-                      <p className="font-bold text-[#2E2910] text-sm">
-                        {v.type} Tanker #{v.id.slice(-4)}
-                      </p>
-                      <p className="text-xs text-[#58512b]">{v.capacity.toLocaleString()} Liters</p>
+            {vehicles.length === 0 ? (
+              <div className="p-4 border border-dashed border-[#e2dab0] rounded-lg text-center text-xs text-[#857c4c]">
+                No available vehicles registered in database.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {vehicles.map((v) => (
+                  <div
+                    key={v.id}
+                    onClick={() => setSelectedVehicleId(v.id)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
+                      selectedVehicleId === v.id
+                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
+                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="vehicle"
+                        checked={selectedVehicleId === v.id}
+                        onChange={() => setSelectedVehicleId(v.id)}
+                        className="accent-[#2C5745]"
+                      />
+                      <div>
+                        <p className="font-bold text-[#2E2910] text-sm">
+                          {v.type} Tanker #{v.id.slice(-4)}
+                        </p>
+                        <p className="text-xs text-[#58512b]">{v.capacity.toLocaleString()} Liters</p>
+                      </div>
                     </div>
+                    <Badge variant="available">Available</Badge>
                   </div>
-                  <Badge variant="available">Available</Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Filling Station Recommendation Section */}
@@ -172,46 +184,52 @@ export const AssignModal: React.FC<AssignModalProps> = ({
             <label className="block text-xs font-bold text-[#2E2910] uppercase tracking-wider mb-2">
               3. Select Filling Station (Queue Congestion Status)
             </label>
-            <div className="space-y-2">
-              {stations.map((st) => (
-                <div
-                  key={st.id}
-                  onClick={() => setSelectedStationId(st.id)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
-                    selectedStationId === st.id
-                      ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
-                      : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="station"
-                      checked={selectedStationId === st.id}
-                      onChange={() => setSelectedStationId(st.id)}
-                      className="accent-[#2C5745]"
-                    />
-                    <div>
-                      <p className="font-bold text-[#2E2910] text-sm">{st.name}</p>
-                      <p className="text-xs text-[#857c4c]">
-                        Current Tanker Queue: {st.currentTruckCount} trucks waiting
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={
-                      st.availability === 'AVAILABLE'
-                        ? 'available'
-                        : st.availability === 'BUSY'
-                        ? 'busy'
-                        : 'very_busy'
-                    }
+            {stations.length === 0 ? (
+              <div className="p-4 border border-dashed border-[#e2dab0] rounded-lg text-center text-xs text-[#857c4c]">
+                No filling stations registered in database.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {stations.map((st) => (
+                  <div
+                    key={st.id}
+                    onClick={() => setSelectedStationId(st.id)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
+                      selectedStationId === st.id
+                        ? 'border-[#2C5745] bg-[#2C5745]/10 ring-2 ring-[#2C5745]'
+                        : 'border-[#e2dab0] bg-white hover:bg-[#f7f4d9]'
+                    }`}
                   >
-                    {st.availability.replace('_', ' ')}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="station"
+                        checked={selectedStationId === st.id}
+                        onChange={() => setSelectedStationId(st.id)}
+                        className="accent-[#2C5745]"
+                      />
+                      <div>
+                        <p className="font-bold text-[#2E2910] text-sm">{st.name}</p>
+                        <p className="text-xs text-[#857c4c]">
+                          Current Tanker Queue: {st.currentTruckCount} trucks waiting
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={
+                        st.availability === 'AVAILABLE'
+                          ? 'available'
+                          : st.availability === 'BUSY'
+                          ? 'busy'
+                          : 'very_busy'
+                      }
+                    >
+                      {st.availability.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e2dab0]">

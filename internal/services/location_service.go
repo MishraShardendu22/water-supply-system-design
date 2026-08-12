@@ -22,14 +22,14 @@ func NewLocationService(locRepo *repositories.LocationRepository, driverRepo *re
 }
 
 type CreateDropOffLocationInput struct {
-	Address            string   `json:"address"`
-	Latitude           float64  `json:"latitude"`
-	Longitude          float64  `json:"longitude"`
-	Landmark           *string  `json:"landmark"`
-	HasPrivateBorewell bool     `json:"hasPrivateBorewell"`
-	TrafficRisk        string   `json:"trafficRisk"` // Low, Medium, High
-	NormalTravelTime   int      `json:"normalTravelTime"`
-	IsSchoolOrHospital bool     `json:"isSchoolOrHospital"`
+	Address            string  `json:"address"`
+	Latitude           float64 `json:"latitude"`
+	Longitude          float64 `json:"longitude"`
+	Landmark           *string `json:"landmark"`
+	HasPrivateBorewell bool    `json:"hasPrivateBorewell"`
+	TrafficRisk        string  `json:"trafficRisk"` // Low, Medium, High
+	NormalTravelTime   int     `json:"normalTravelTime"`
+	IsSchoolOrHospital bool    `json:"isSchoolOrHospital"`
 }
 
 func (s *LocationService) CreateDropOffLocation(ctx context.Context, input CreateDropOffLocationInput) (*models.DropOffLocation, error) {

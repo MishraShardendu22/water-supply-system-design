@@ -10,14 +10,14 @@ import (
 )
 
 type RequestService struct {
-	reqRepo        *repositories.RequestRepository
-	personRepo     *repositories.PersonRepository
-	locRepo        *repositories.LocationRepository
-	driverRepo     *repositories.DriverRepository
-	vehicleRepo    *repositories.VehicleRepository
-	fsRepo         *repositories.FillingStationRepository
+	reqRepo         *repositories.RequestRepository
+	personRepo      *repositories.PersonRepository
+	locRepo         *repositories.LocationRepository
+	driverRepo      *repositories.DriverRepository
+	vehicleRepo     *repositories.VehicleRepository
+	fsRepo          *repositories.FillingStationRepository
 	priorityService *PriorityService
-	otpService     *OTPService
+	otpService      *OTPService
 }
 
 func NewRequestService(
