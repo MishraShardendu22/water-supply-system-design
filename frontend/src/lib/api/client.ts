@@ -27,12 +27,14 @@ export async function apiFetch<T>(
     const data = await res.json();
     return data;
   } catch (err: any) {
-    console.warn(`[API Client] Network call failed for ${endpoint}. Error:`, err);
+    console.warn(
+      `[API Client] Go Backend API unreachable at ${API_BASE_URL}${endpoint}. Please ensure backend is running using 'go run main.go'.`
+    );
     return {
       success: false,
       error: {
         code: 'NETWORK_ERROR',
-        message: err?.message || 'Failed to connect to backend service',
+        message: `Backend API server offline at ${API_BASE_URL}. Start Go backend with 'go run main.go'.`,
       },
     };
   }

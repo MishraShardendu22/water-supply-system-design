@@ -8,6 +8,7 @@ interface AuthContextType {
   userName: string;
   userEmail: string;
   isAuthenticated: boolean;
+  isLoaded: boolean;
   setUserRole: (role: UserRole) => void;
   login: (token: string, name: string, email: string, role: UserRole) => void;
   logout: () => void;
@@ -15,9 +16,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   userRole: 'Admin',
-  userName: 'System Admin',
-  userEmail: 'admin@water.gov',
-  isAuthenticated: true,
+  userName: '',
+  userEmail: '',
+  isAuthenticated: false,
+  isLoaded: false,
   setUserRole: () => {},
   login: () => {},
   logout: () => {},
@@ -25,19 +27,29 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userRole, setUserRoleState] = useState<UserRole>('Admin');
-  const [userName, setUserName] = useState<string>('System Admin');
-  const [userEmail, setUserEmail] = useState<string>('admin@water.gov');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
       const storedRole = localStorage.getItem('user_role') as UserRole;
       const storedName = localStorage.getItem('user_name');
-      const token = localStorage.getItem('auth_token');
+      const storedEmail = localStorage.getItem('user_email');
 
-      if (storedRole) setUserRoleState(storedRole);
-      if (storedName) setUserName(storedName);
-      if (token) setIsAuthenticated(true);
+      if (token) {
+        setIsAuthenticated(true);
+        if (storedRole) setUserRoleState(storedRole);
+        if (storedName) setUserName(storedName);
+        if (storedEmail) setUserEmail(storedEmail);
+      } else {
+        setIsAuthenticated(false);
+        setUserName('');
+        setUserEmail('');
+      }
+      setIsLoaded(true);
     }
   }, []);
 
@@ -53,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('auth_token', token);
       localStorage.setItem('user_role', role);
       localStorage.setItem('user_name', name);
+      localStorage.setItem('user_email', email);
     }
     setUserRoleState(role);
     setUserName(name);
@@ -65,7 +78,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_role');
       localStorage.removeItem('user_name');
+      localStorage.removeItem('user_email');
     }
+    setUserName('');
+    setUserEmail('');
     setIsAuthenticated(false);
   };
 
@@ -76,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userName,
         userEmail,
         isAuthenticated,
+        isLoaded,
         setUserRole,
         login,
         logout,

@@ -14,22 +14,22 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Admin Dashboard', href: '/dashboard', icon: '📊', roles: ['Admin', 'Manager', 'Dispatcher'] },
+  { label: 'Admin Dashboard', href: '/dashboard', icon: '📊' },
   { label: 'Requests Queue', href: '/requests', icon: '🚰' },
-  { label: 'Driver Operations', href: '/driver-dashboard', icon: '🚛', roles: ['Driver', 'Admin'] },
-  { label: 'District Manager Area', href: '/district-manager-dashboard', icon: '🏙️', roles: ['DistrictManager', 'Admin'] },
+  { label: 'Driver Operations', href: '/driver-dashboard', icon: '🚛' },
+  { label: 'District Manager Area', href: '/district-manager-dashboard', icon: '🏙️' },
   { label: 'Drivers', href: '/drivers', icon: '👨‍✈️' },
   { label: 'Vehicles', href: '/vehicles', icon: '🚚' },
   { label: 'Filling Stations', href: '/filling-stations', icon: '⛽' },
   { label: 'Drop-Off Locations', href: '/locations', icon: '📍' },
   { label: 'District Managers', href: '/district-managers', icon: '👔' },
-  { label: 'Administration', href: '/admins', icon: '🛡️', roles: ['Admin'] },
+  { label: 'Administration', href: '/admins', icon: '🛡️' },
 ];
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { userRole, userName, setUserRole, logout } = useAuth();
+  const { userRole, userName, isAuthenticated, setUserRole, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -130,18 +130,32 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <span>Role: {userRole}</span>
             </div>
 
-            {/* Profile Menu */}
+            {/* Profile / Auth Menu */}
             <div className="flex items-center gap-3 pl-3 border-l border-[#e2dab0]">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-[#2E2910]">{userName}</p>
-                <p className="text-[10px] text-[#857c4c]">Municipal Officer</p>
+                <p className="text-xs font-bold text-[#2E2910]">
+                  {isAuthenticated ? userName : 'Not Logged In'}
+                </p>
+                <p className="text-[10px] text-[#857c4c]">
+                  {isAuthenticated ? 'Authenticated Session' : 'Public Access'}
+                </p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-3 py-1.5 bg-[#f4f1db] hover:bg-red-50 hover:text-red-700 text-[#58512b] text-xs font-bold rounded-md transition-colors border border-[#dcd499]"
-              >
-                Logout
-              </button>
+
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 bg-[#f4f1db] hover:bg-red-50 hover:text-red-700 text-[#58512b] text-xs font-bold rounded-md transition-colors border border-[#dcd499]"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded-md shadow transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </header>
