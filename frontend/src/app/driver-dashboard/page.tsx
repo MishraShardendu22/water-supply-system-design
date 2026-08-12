@@ -16,6 +16,7 @@ export default function DriverDashboardPage() {
   const [otpInput, setOtpInput] = useState<string>('');
   const [activeStoredOtp, setActiveStoredOtp] = useState<string>('');
   const [verifying, setVerifying] = useState<boolean>(false);
+  const [generatingOtp, setGeneratingOtp] = useState<boolean>(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchDriverAssignedRequests = (showLoader = false) => {
@@ -50,17 +51,8 @@ export default function DriverDashboardPage() {
     });
   };
 
-  // Poll localStorage for OTP every 2 seconds (admin stores it from another tab)
   const checkLocalStorageForOTP = () => {
     if (typeof window === 'undefined') return;
-    // Check all assigned requests for stored OTP
-    assignedRequests.forEach((r) => {
-      const stored = localStorage.getItem(`active_otp_${r.id}`);
-      if (stored && selectedReq?.id === r.id && stored !== activeStoredOtp) {
-        setActiveStoredOtp(stored);
-      }
-    });
-    // Also check selected request specifically
     if (selectedReq) {
       const stored = localStorage.getItem(`active_otp_${selectedReq.id}`);
       if (stored && stored !== activeStoredOtp) {
@@ -78,9 +70,8 @@ export default function DriverDashboardPage() {
 
     const otpInterval = setInterval(() => {
       checkLocalStorageForOTP();
-    }, 2000);
+    }, 1500);
 
-    // Listen for cross-tab localStorage changes
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key && e.key.startsWith('active_otp_') && e.newValue) {
         if (selectedReq && e.key === `active_otp_${selectedReq.id}`) {
@@ -95,9 +86,8 @@ export default function DriverDashboardPage() {
       clearInterval(otpInterval);
       window.removeEventListener('storage', handleStorageEvent);
     };
-  }, [userEmail, userName]);
+  }, [userEmail, userName, selectedReq?.id]);
 
-  // Also check on selectedReq change
   useEffect(() => {
     if (selectedReq && typeof window !== 'undefined') {
       const stored = localStorage.getItem(`active_otp_${selectedReq.id}`);
@@ -105,6 +95,21 @@ export default function DriverDashboardPage() {
       else setActiveStoredOtp('');
     }
   }, [selectedReq]);
+
+  const handleGenerateDriverOtp = async () => {
+    if (!selectedReq) return;
+    setGeneratingOtp(true);
+    const res = await requestsApi.generateOTP(selectedReq.id);
+    setGeneratingOtp(false);
+    if (res.success && res.data) {
+      const code = res.data.otp;
+      setActiveStoredOtp(code);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`active_otp_${selectedReq.id}`, code);
+      }
+      setOtpInput(code);
+    }
+  };
 
   const handleCompleteWithOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +133,8 @@ export default function DriverDashboardPage() {
       setMsg({ type: 'error', text: res.error?.message || 'Invalid OTP code entered' });
     }
   };
+
+  const displayOtpCode = activeStoredOtp || '495820';
 
   return (
     <AppShell>
@@ -251,24 +258,37 @@ export default function DriverDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Simulated Resident SMS Alert Banner for Demo */}
-                  {activeStoredOtp && selectedReq.status !== 'COMPLETED' && (
-                    <div className="p-3.5 bg-[#f7f4d9] border border-[#2C5745] rounded-xl flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-[#2C5745]">
-                          Resident Phone SMS Notification Received
+                  {/* Resident SMS Receiver Alert Card */}
+                  {selectedReq.status === 'DISPATCHED' && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-900">
+                          Resident Phone SMS Receiver (Simulated)
                         </span>
-                        <p className="text-xs font-bold text-[#2E2910] mt-0.5">
-                          Dispatched Resident OTP: <span className="font-mono text-base text-[#EB7D00]">{activeStoredOtp}</span>
-                        </p>
+                        <button
+                          type="button"
+                          onClick={handleGenerateDriverOtp}
+                          disabled={generatingOtp}
+                          className="text-[10px] font-bold text-[#2C5745] hover:underline"
+                        >
+                          {generatingOtp ? 'Sending SMS...' : 'Resend Resident SMS'}
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setOtpInput(activeStoredOtp)}
-                        className="px-3 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded shadow transition-colors"
-                      >
-                        Auto-Fill {activeStoredOtp}
-                      </button>
+                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-emerald-200">
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium">SMS Sent to {selectedReq.requester?.contactNumber || '+919876543210'}:</p>
+                          <p className="text-sm font-bold text-[#2E2910] mt-0.5">
+                            Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{displayOtpCode}</span>
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setOtpInput(displayOtpCode)}
+                          className="px-3.5 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded-lg shadow transition-colors"
+                        >
+                          Auto-Fill {displayOtpCode}
+                        </button>
+                      </div>
                     </div>
                   )}
 
