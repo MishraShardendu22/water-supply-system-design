@@ -38,9 +38,14 @@ export default function DriverDashboardPage() {
           return isMatch && isDriverStatus;
         });
 
-        const finalAssignments = active.length > 0 ? active : res.data.filter(
+        const listToUse = active.length > 0 ? active : res.data.filter(
           (r) => r.status === 'ASSIGNED' || r.status === 'DISPATCHED' || r.status === 'COMPLETED'
         );
+
+        // Deduplicate assignments strictly by request ID
+        const uniqueMap = new Map<string, RequestItem>();
+        listToUse.forEach((item) => uniqueMap.set(item.id, item));
+        const finalAssignments = Array.from(uniqueMap.values());
 
         setAssignedRequests(finalAssignments);
         if (finalAssignments.length > 0 && !selectedReq) {
