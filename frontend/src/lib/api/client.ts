@@ -1,6 +1,7 @@
 import { ApiResponse } from '../types';
+import { config } from '../../config';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = config.BACKEND_URL;
 
 export async function apiFetch<T>(
   endpoint: string,
