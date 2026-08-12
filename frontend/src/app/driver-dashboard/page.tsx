@@ -139,8 +139,6 @@ export default function DriverDashboardPage() {
     }
   };
 
-  const displayOtpCode = activeStoredOtp || '495820';
-
   return (
     <AppShell>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -263,38 +261,40 @@ export default function DriverDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Resident SMS Receiver Alert Card */}
+                  {/* Resident SMS Receiver Alert Card - ONLY SHOWN AFTER MANAGER DISPATCHES OTP */}
                   {selectedReq.status === 'DISPATCHED' && (
-                    <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-900">
-                          Resident Phone SMS Receiver (Simulated)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleGenerateDriverOtp}
-                          disabled={generatingOtp}
-                          className="text-[10px] font-bold text-[#2C5745] hover:underline"
-                        >
-                          {generatingOtp ? 'Sending SMS...' : 'Resend Resident SMS'}
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-emerald-200">
-                        <div>
-                          <p className="text-xs text-gray-500 font-medium">SMS Sent to {selectedReq.requester?.contactNumber || '+919876543210'}:</p>
-                          <p className="text-sm font-bold text-[#2E2910] mt-0.5">
-                            Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{displayOtpCode}</span>
-                          </p>
+                    activeStoredOtp ? (
+                      <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-900">
+                            Resident Phone SMS Receiver (Simulated)
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200">
+                            OTP Dispatched by Manager
+                          </span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setOtpInput(displayOtpCode)}
-                          className="px-3.5 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded-lg shadow transition-colors"
-                        >
-                          Auto-Fill {displayOtpCode}
-                        </button>
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-emerald-200">
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">SMS Sent to {selectedReq.requester?.contactNumber || '+919876543210'}:</p>
+                            <p className="text-sm font-bold text-[#2E2910] mt-0.5">
+                              Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{activeStoredOtp}</span>
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setOtpInput(activeStoredOtp)}
+                            className="px-3.5 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded-lg shadow transition-colors"
+                          >
+                            Auto-Fill {activeStoredOtp}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="p-4 bg-[#f7f4d9] border border-[#dcd499] rounded-xl text-xs">
+                        <p className="font-bold text-[#2E2910]">Awaiting Resident OTP Dispatch</p>
+                        <p className="text-[#857c4c]">Manager has not sent the OTP SMS to the resident yet. Please wait for the Manager to click "Send Delivery OTP to Resident".</p>
+                      </div>
+                    )
                   )}
 
                   {/* OTP Verification Box */}

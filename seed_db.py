@@ -116,13 +116,7 @@ def main():
     post(f"/requests/{req2}/dispatch", None, token)
     print(f"Emergency request {req2} assigned to Driver Ramesh Chand and DISPATCHED!")
 
-    print("=== 10. GENERATING OTP FOR EMERGENCY DISPATCH ===")
-    otp_res = post(f"/requests/{req2}/generate-otp", None, token)
-    if otp_res and otp_res.get("success"):
-        otp_code = otp_res["data"]["otp"]
-        print(f"==========================================")
-        print(f"DISPATCHED RESIDENT OTP CODE: {otp_code}")
-        print(f"==========================================")
+    print("=== 10. LEAVING OTP UN-GENERATED (AWAITING MANAGER DISPATCH) ===")
 
     print("=== 11. CREATING DISTRICT MANAGER ===")
     post("/district-managers", {
