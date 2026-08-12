@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 
-	"water-supply-system/internal/app"
+	"water-supply-system/pkg/app"
 )
 
 var (

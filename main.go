@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"water-supply-system/internal/app"
 	"water-supply-system/internal/utils"
+	"water-supply-system/pkg/app"
 )
 
 func main() {
