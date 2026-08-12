@@ -27,13 +27,15 @@ func SetupRoutes(app *fiber.App, deps *RouterDependencies) {
 	app.Use(middleware.RequestID())
 	app.Use(middleware.Logger())
 
-	// Health Check
-	app.Get("/health", func(c *fiber.Ctx) error {
+	healthHandler := func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
 			"status": "ok",
-			"env":    deps.Config.AppEnv,
 		})
-	})
+	}
+
+	// Health Check
+	app.Get("/", healthHandler)
+	app.Get("/health", healthHandler)
 
 	// Auth routes
 	auth := app.Group("/auth")
