@@ -62,10 +62,3 @@ What about the old channels?
 9. The municipality has limited authority over contracted tanker drivers
     - If there is a failure in delivery the driver would be penalised and the municipality can take action against the driver, so that the drivers are more responsible and accountable for their actions. (Have a Rating system for the drivers)
     - Proof of delivery will be a basic otp system, where the community person will share the otp with the driver, so that the person can mark the delivery as completed.
-
-
-## Time Distribution
-    - Chosing the problem out of the 4 given scenarios - 30 mins
-    - Finding a solution and Noting the problem statement - 30 mins
-    
-
