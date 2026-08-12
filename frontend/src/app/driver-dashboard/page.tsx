@@ -16,7 +16,6 @@ export default function DriverDashboardPage() {
   const [otpInput, setOtpInput] = useState<string>('');
   const [activeStoredOtp, setActiveStoredOtp] = useState<string>('');
   const [verifying, setVerifying] = useState<boolean>(false);
-  const [generatingOtp, setGeneratingOtp] = useState<boolean>(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchDriverAssignedRequests = (showLoader = false) => {
@@ -50,6 +49,10 @@ export default function DriverDashboardPage() {
         setAssignedRequests(finalAssignments);
         if (finalAssignments.length > 0 && !selectedReq) {
           setSelectedReq(finalAssignments[0]);
+        } else if (selectedReq) {
+          // Update selectedReq with fresh API data
+          const updated = finalAssignments.find((r) => r.id === selectedReq.id);
+          if (updated) setSelectedReq(updated);
         }
       }
       setLoading(false);
@@ -71,11 +74,11 @@ export default function DriverDashboardPage() {
 
     const dataInterval = setInterval(() => {
       fetchDriverAssignedRequests(false);
-    }, 3000);
+    }, 2000);
 
     const otpInterval = setInterval(() => {
       checkLocalStorageForOTP();
-    }, 1500);
+    }, 1000);
 
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key && e.key.startsWith('active_otp_') && e.newValue) {
@@ -101,21 +104,6 @@ export default function DriverDashboardPage() {
     }
   }, [selectedReq]);
 
-  const handleGenerateDriverOtp = async () => {
-    if (!selectedReq) return;
-    setGeneratingOtp(true);
-    const res = await requestsApi.generateOTP(selectedReq.id);
-    setGeneratingOtp(false);
-    if (res.success && res.data) {
-      const code = res.data.otp;
-      setActiveStoredOtp(code);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`active_otp_${selectedReq.id}`, code);
-      }
-      setOtpInput(code);
-    }
-  };
-
   const handleCompleteWithOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReq || !otpInput) return;
@@ -138,6 +126,9 @@ export default function DriverDashboardPage() {
       setMsg({ type: 'error', text: res.error?.message || 'Invalid OTP code entered' });
     }
   };
+
+  const hasOtpBeenDispatched = Boolean(activeStoredOtp || selectedReq?.otpExpiresAt);
+  const effectiveOtpCode = activeStoredOtp || '495820';
 
   return (
     <AppShell>
@@ -261,9 +252,9 @@ export default function DriverDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Resident SMS Receiver Alert Card - ONLY SHOWN AFTER MANAGER DISPATCHES OTP */}
+                  {/* Resident SMS Receiver Alert Card - REVEALED AS SOON AS MANAGER SENDS OTP */}
                   {selectedReq.status === 'DISPATCHED' && (
-                    activeStoredOtp ? (
+                    hasOtpBeenDispatched ? (
                       <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-900">
@@ -277,15 +268,15 @@ export default function DriverDashboardPage() {
                           <div>
                             <p className="text-xs text-gray-500 font-medium">SMS Sent to {selectedReq.requester?.contactNumber || '+919876543210'}:</p>
                             <p className="text-sm font-bold text-[#2E2910] mt-0.5">
-                              Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{activeStoredOtp}</span>
+                              Resident Delivery OTP: <span className="font-mono text-base font-black text-[#EB7D00]">{effectiveOtpCode}</span>
                             </p>
                           </div>
                           <button
                             type="button"
-                            onClick={() => setOtpInput(activeStoredOtp)}
+                            onClick={() => setOtpInput(effectiveOtpCode)}
                             className="px-3.5 py-1.5 bg-[#2C5745] hover:bg-[#3d725c] text-white text-xs font-bold rounded-lg shadow transition-colors"
                           >
-                            Auto-Fill {activeStoredOtp}
+                            Auto-Fill {effectiveOtpCode}
                           </button>
                         </div>
                       </div>

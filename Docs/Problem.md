@@ -3,9 +3,7 @@
 ## District Water-Tanker System
 
 A rapidly growing town supplies piped water to most neighbourhoods, but shortages occur during summer and in areas with weak infrastructure.
-
 During shortages, the municipal office sends water tankers to housing societies, public schools, hospitals, and informal settlements.
-
 The officer responsible for tanker distribution explains:
 
 > "Every morning, we receive more requests than we can fulfil. Some are genuine emergencies. Some areas receive tankers repeatedly because they have influential representatives. Other areas wait for days.
