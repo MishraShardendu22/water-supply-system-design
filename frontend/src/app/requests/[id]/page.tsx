@@ -24,7 +24,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   const [otpSentNotice, setOtpSentNotice] = useState<boolean>(false);
-  const [dispatchedOTPCode, setDispatchedOTPCode] = useState<string>('');
 
   const loadRequest = (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -34,11 +33,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
       }
       setLoading(false);
     });
-
-    if (typeof window !== 'undefined') {
-      const savedOtp = localStorage.getItem(`active_otp_${requestId}`);
-      if (savedOtp) setDispatchedOTPCode(savedOtp);
-    }
   };
 
   useEffect(() => {
@@ -85,7 +79,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
     setActionLoading(false);
     if (res.success && res.data) {
       const code = res.data.otp;
-      setDispatchedOTPCode(code);
       if (typeof window !== 'undefined') {
         localStorage.setItem(`active_otp_${requestId}`, code);
       }
@@ -222,19 +215,14 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* OTP Dispatched Banner */}
-        {(otpSentNotice || dispatchedOTPCode || req.otpExpiresAt) && req.status === 'DISPATCHED' && (
+        {/* OTP Dispatched Notice (Manager/Admin View: NO plain-text OTP code displayed) */}
+        {(otpSentNotice || req.otpExpiresAt) && req.status === 'DISPATCHED' && (
           <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-xl text-xs space-y-1 shadow-sm">
-            <div className="flex items-center justify-between font-bold text-emerald-900">
-              <span>Delivery OTP Dispatched to Resident ({req.requester?.contactNumber || 'Resident Phone'})</span>
-              {dispatchedOTPCode && (
-                <span className="font-mono text-base font-black px-3 py-0.5 bg-emerald-200 text-emerald-950 rounded border border-emerald-400">
-                  OTP Code: {dispatchedOTPCode}
-                </span>
-              )}
+            <div className="font-bold text-emerald-900">
+              Delivery OTP Dispatched to Resident ({req.requester?.contactNumber || 'Resident Phone'})
             </div>
             <p className="text-[#58512b]">
-              The 6-digit OTP code has been generated and sent to the resident. Tanker driver will collect and verify this code upon delivery.
+              The 6-digit OTP code has been generated and sent to the resident's registered phone number. Tanker driver will collect and verify this code upon delivery.
             </p>
           </div>
         )}

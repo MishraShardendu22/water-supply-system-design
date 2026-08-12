@@ -38,26 +38,46 @@ func (r *LocationRepository) GetLocationByID(ctx context.Context, id string) (*m
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	var loc models.Location
-	err := row.Scan(&loc.ID, &loc.Address, &loc.Latitude, &loc.Longitude, &loc.Landmark, &loc.CreatedAt)
+	var lm sql.NullString
+	err := row.Scan(&loc.ID, &loc.Address, &loc.Latitude, &loc.Longitude, &lm, &loc.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to query location: %w", err)
 	}
+	if lm.Valid {
+		loc.Landmark = &lm.String
+	}
 	return &loc, nil
 }
 
 func (r *LocationRepository) CreateDropOffLocation(ctx context.Context, dropOff *models.DropOffLocation) error {
-	query := `
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	if dropOff.Location != nil {
+		q1 := `
+			INSERT INTO locations (id, address, latitude, longitude, landmark, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+		`
+		if _, err := tx.ExecContext(ctx, q1, dropOff.Location.ID, dropOff.Location.Address, dropOff.Location.Latitude, dropOff.Location.Longitude, dropOff.Location.Landmark, dropOff.Location.CreatedAt); err != nil {
+			return fmt.Errorf("failed to insert location: %w", err)
+		}
+	}
+
+	q2 := `
 		INSERT INTO drop_off_locations (id, has_private_borewell, traffic_risk, normal_travel_time, is_school_or_hospital, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`
-	_, err := r.db.ExecContext(ctx, query, dropOff.ID, dropOff.HasPrivateBorewell, dropOff.TrafficRisk, dropOff.NormalTravelTime, dropOff.IsSchoolOrHospital, dropOff.CreatedAt)
-	if err != nil {
+	if _, err := tx.ExecContext(ctx, q2, dropOff.ID, dropOff.HasPrivateBorewell, dropOff.TrafficRisk, dropOff.NormalTravelTime, dropOff.IsSchoolOrHospital, dropOff.CreatedAt); err != nil {
 		return fmt.Errorf("failed to insert drop-off location: %w", err)
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 func (r *LocationRepository) GetDropOffLocationByID(ctx context.Context, id string) (*models.DropOffLocation, error) {
@@ -73,15 +93,19 @@ func (r *LocationRepository) GetDropOffLocationByID(ctx context.Context, id stri
 
 	var d models.DropOffLocation
 	var l models.Location
+	var lm sql.NullString
 	err := row.Scan(
 		&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital, &d.CreatedAt,
-		&l.ID, &l.Address, &l.Latitude, &l.Longitude, &l.Landmark, &l.CreatedAt,
+		&l.ID, &l.Address, &l.Latitude, &l.Longitude, &lm, &l.CreatedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to query drop-off location: %w", err)
+	}
+	if lm.Valid {
+		l.Landmark = &lm.String
 	}
 	d.Location = &l
 	return &d, nil
@@ -106,11 +130,15 @@ func (r *LocationRepository) ListDropOffLocations(ctx context.Context) ([]*model
 	for rows.Next() {
 		var d models.DropOffLocation
 		var l models.Location
+		var lm sql.NullString
 		if err := rows.Scan(
 			&d.ID, &d.HasPrivateBorewell, &d.TrafficRisk, &d.NormalTravelTime, &d.IsSchoolOrHospital, &d.CreatedAt,
-			&l.ID, &l.Address, &l.Latitude, &l.Longitude, &l.Landmark, &l.CreatedAt,
+			&l.ID, &l.Address, &l.Latitude, &l.Longitude, &lm, &l.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan drop-off location row: %w", err)
+		}
+		if lm.Valid {
+			l.Landmark = &lm.String
 		}
 		d.Location = &l
 		list = append(list, &d)

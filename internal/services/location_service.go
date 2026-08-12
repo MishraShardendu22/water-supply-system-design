@@ -56,10 +56,6 @@ func (s *LocationService) CreateDropOffLocation(ctx context.Context, input Creat
 		CreatedAt: time.Now(),
 	}
 
-	if err := s.locRepo.CreateLocation(ctx, loc); err != nil {
-		return nil, err
-	}
-
 	dropOff := &models.DropOffLocation{
 		ID:                 locID,
 		HasPrivateBorewell: input.HasPrivateBorewell,

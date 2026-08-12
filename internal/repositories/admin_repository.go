@@ -31,7 +31,7 @@ func (r *AdminRepository) CreateAdmin(ctx context.Context, admin *models.Adminis
 
 func (r *AdminRepository) GetAdminByMail(ctx context.Context, mail string) (*models.Administration, error) {
 	query := `
-		SELECT id, name, mail, password_hash, contact_number, role, created_at
+		SELECT id, name, mail, password_hash, COALESCE(contact_number, ''), role, created_at
 		FROM administrations
 		WHERE mail = $1
 	`
@@ -50,7 +50,7 @@ func (r *AdminRepository) GetAdminByMail(ctx context.Context, mail string) (*mod
 
 func (r *AdminRepository) GetAdminByID(ctx context.Context, id string) (*models.Administration, error) {
 	query := `
-		SELECT id, name, mail, password_hash, contact_number, role, created_at
+		SELECT id, name, mail, password_hash, COALESCE(contact_number, ''), role, created_at
 		FROM administrations
 		WHERE id = $1
 	`
@@ -69,7 +69,7 @@ func (r *AdminRepository) GetAdminByID(ctx context.Context, id string) (*models.
 
 func (r *AdminRepository) ListAdmins(ctx context.Context) ([]*models.Administration, error) {
 	query := `
-		SELECT id, name, mail, password_hash, contact_number, role, created_at
+		SELECT id, name, mail, password_hash, COALESCE(contact_number, ''), role, created_at
 		FROM administrations
 		ORDER BY created_at DESC
 	`
@@ -91,11 +91,7 @@ func (r *AdminRepository) ListAdmins(ctx context.Context) ([]*models.Administrat
 }
 
 func (r *AdminRepository) UpdateAdmin(ctx context.Context, admin *models.Administration) error {
-	query := `
-		UPDATE administrations
-		SET name = $1, contact_number = $2, role = $3
-		WHERE id = $4
-	`
+	query := `UPDATE administrations SET name = $1, contact_number = $2, role = $3 WHERE id = $4`
 	_, err := r.db.ExecContext(ctx, query, admin.Name, admin.ContactNumber, admin.Role, admin.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update admin: %w", err)
@@ -103,25 +99,11 @@ func (r *AdminRepository) UpdateAdmin(ctx context.Context, admin *models.Adminis
 	return nil
 }
 
-func (r *AdminRepository) UpdateAdminPasswordHash(ctx context.Context, id string, passwordHash string) error {
-	query := `
-		UPDATE administrations
-		SET password_hash = $1
-		WHERE id = $2
-	`
-	_, err := r.db.ExecContext(ctx, query, passwordHash, id)
+func (r *AdminRepository) UpdateAdminPasswordHash(ctx context.Context, adminID string, hash string) error {
+	query := `UPDATE administrations SET password_hash = $1 WHERE id = $2`
+	_, err := r.db.ExecContext(ctx, query, hash, adminID)
 	if err != nil {
 		return fmt.Errorf("failed to update admin password hash: %w", err)
 	}
 	return nil
-}
-
-func (r *AdminRepository) CountAdmins(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM administrations`
-	var count int
-	err := r.db.QueryRowContext(ctx, query).Scan(&count)
-	if err != nil {
-		return 0, fmt.Errorf("failed to count admins: %w", err)
-	}
-	return count, nil
 }

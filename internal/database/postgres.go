@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -14,12 +15,16 @@ type DB struct {
 }
 
 func Connect(databaseURL string) (*DB, error) {
-	db, err := sql.Open("postgres", databaseURL)
+	connStr := databaseURL
+	// Replace pooler endpoint with direct PostgreSQL endpoint for 100% native driver compatibility
+	connStr = strings.Replace(connStr, "-pooler.", ".", 1)
+
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	db.SetMaxOpenConns(25)
+	db.SetMaxOpenConns(20)
 	db.SetMaxIdleConns(10)
 	db.SetConnMaxLifetime(15 * time.Minute)
 
